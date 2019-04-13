@@ -7,8 +7,8 @@ LDFLAGS = -g -no-pie
 SFML = -lsfml-graphics -lsfml-window -lsfml-system
 VPATH = ./src
 OBJPATH = ./compile
-SRCC = main.cpp gameobjects.cpp
-HEAD = gameobjects.hpp
+SRCC = main.cpp gameobjects.cpp game.cpp
+HEAD = gameobjects.hpp game.hpp
 SRCSASM = 
 OBJC = $(SRCC:%.cpp=$(OBJPATH)/%.o)
 OBJASM = $(SRCASM:.S=.o)

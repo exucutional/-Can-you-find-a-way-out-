@@ -18,11 +18,11 @@ struct Vector
 using Vec = Vector <float>;
 class Gameobject
 {
-	Vec pos;
+	Vec position;
 	Vec size;
 	sf::Sprite sprite;
 public:
-	Gameobject();
+	Gameobject(Vec pos, Vec sz, sf::Sprite spr) : position(pos), size(sz), sprite(spr) {}
 	~Gameobject();
 };
 class Stats
@@ -34,7 +34,7 @@ public:
 };
 class Character : public Gameobject
 {
-	class Stats stats;
+	Stats stats;
 	//class CharacterController control;	
 	//class CharacterAnimationController animcontrol;
 	//class CharacterCollisionHandler collcontrol;
@@ -66,14 +66,14 @@ public:
 class PlayerController
 {
 public:
-	class InterruptHandler interrupt;
+	InterruptHandler interrupt;
 	void interaction();
 };
 class Player
 {
 	//Character character;
 public:
-	class PlayerController control;
+	PlayerController control;
 };
 
 #endif //GAMEOBJECT_HPP_
