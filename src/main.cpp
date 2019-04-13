@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cassert>
 #include <SFML/Graphics.hpp>
-#include "Gameobjects.hpp"
+#include "gameobjects.hpp"
 
 int main()
 {
