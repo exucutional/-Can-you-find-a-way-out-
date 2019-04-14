@@ -1,10 +1,12 @@
 CC = g++
 ASM = nasm
 LD = g++
-CFLAGS =-c -g -O3 -Wall
+SFML_DIR= C:/SFML
+LIBDIR= $(SFML_DIR)/lib
+CFLAGS =-c -g -O3 -Wall -I$(SFML_DIR)/include
 AFLAGS = -f elf64
 LDFLAGS = -g -no-pie
-SFML = -lsfml-graphics -lsfml-window -lsfml-system
+SFML = -lsfml-graphics -lsfml-window -lsfml-system 
 VPATH = ./src
 OBJPATH = ./compile
 SRCC = main.cpp gameobjects.cpp game.cpp
@@ -12,16 +14,16 @@ HEAD = gameobjects.hpp game.hpp
 SRCSASM = 
 OBJC = $(SRCC:%.cpp=$(OBJPATH)/%.o)
 OBJASM = $(SRCASM:.S=.o)
-EXECUTABLE = run.out
+EXECUTABLE = run.exe
 
-all: $(CMPPATH) $(SRCC) $(SRCASM) $(EXECUTABLE)
+all: $(OBJPATH) $(SRCC) $(SRCASM) $(EXECUTABLE)
 
-$(CMPPATH):
+$(OBJPATH):
 	@mkdir $@
 
 $(EXECUTABLE): $(OBJC)
 	@echo "LINKING:"
-	$(LD) $(LDFLAGS) $(OBJC) -o  $@ $(SFML)
+	$(LD) $(LDFLAGS) $(OBJC) -o  $@ -L$(LIBDIR) $(SFML)
 
 $(OBJPATH)/%.o: %.cpp $(HEAD)
 	@echo "COMPILING:"
