@@ -152,7 +152,7 @@
 			"file": "main.cpp",
 			"settings":
 			{
-				"buffer_size": 1225,
+				"buffer_size": 159,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -179,7 +179,7 @@
 			"file": "game.cpp",
 			"settings":
 			{
-				"buffer_size": 44,
+				"buffer_size": 1136,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -210,6 +210,30 @@
 			],
 			[
 				"Packages/C++/C++ Single File.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					""
+				],
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					"Run"
+				],
+				[
+					"Packages/Makefile/Make.sublime-build",
+					""
+				],
+				[
+					"Packages/Makefile/Make.sublime-build",
+					"Clean"
+				]
+			],
+			[
+				"Packages/Makefile/Make.sublime-build",
 				""
 			]
 		],
@@ -269,6 +293,8 @@
 		"height": 212.0,
 		"history":
 		[
+			"run.out",
+			"./run.out"
 		]
 	},
 	"distraction_free":
@@ -280,8 +306,16 @@
 		"side_bar_visible": false,
 		"status_bar_visible": false
 	},
+	"expanded_folders":
+	[
+		"/home/exucutional/Desktop/dev_room/TheGame",
+		"/home/exucutional/Desktop/dev_room/TheGame/src",
+		"/home/exucutional/Desktop/dev_room/TheGame/texture"
+	],
 	"file_history":
 	[
+		"/home/exucutional/Desktop/dev_room/TheGame/src/TheGame.sublime-workspace",
+		"/home/exucutional/Desktop/dev_room/TheGame/src/TheGame.sublime-project",
 		"/home/exucutional/Desktop/dev_room/TheGame/src/init.cpp",
 		"/home/exucutional/Desktop/dev_room/TheGame/src/init.hpp",
 		"/home/exucutional/Desktop/dev_room/TheGame/src/Gameobjects.hpp",
@@ -310,7 +344,7 @@
 	],
 	"find":
 	{
-		"height": 37.3333333333
+		"height": 32.0
 	},
 	"find_in_files":
 	{
@@ -324,6 +358,9 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"gameobjects",
+			"makefile",
+			"dir",
 			"catch (Mexcept)",
 			"reinterpret_cast<bool*>(",
 			"Boolceel",
@@ -357,7 +394,7 @@
 	"groups":
 	[
 		{
-			"selected": 3,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -385,7 +422,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
@@ -394,15 +431,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1225,
+						"buffer_size": 159,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								108,
-								108
+								157,
+								157
 							]
 						],
 						"settings":
@@ -413,7 +450,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 4,
 					"type": "text"
 				},
 				{
@@ -429,8 +466,8 @@
 						"selection":
 						[
 							[
-								104,
-								104
+								102,
+								102
 							]
 						],
 						"settings":
@@ -457,8 +494,8 @@
 						"selection":
 						[
 							[
-								451,
-								451
+								736,
+								736
 							]
 						],
 						"settings":
@@ -470,7 +507,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
@@ -479,15 +516,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 44,
+						"buffer_size": 1136,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								18,
-								18
+								291,
+								291
 							]
 						],
 						"settings":
@@ -534,7 +571,7 @@
 	],
 	"incremental_find":
 	{
-		"height": 37.3333333333
+		"height": 32.0
 	},
 	"input":
 	{
@@ -575,7 +612,7 @@
 	"project": "TheGame.sublime-project",
 	"replace":
 	{
-		"height": 69.3333333333
+		"height": 60.0
 	},
 	"save_all_on_build": true,
 	"select_file":
