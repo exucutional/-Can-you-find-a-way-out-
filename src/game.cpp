@@ -11,7 +11,6 @@ void Game::run()
 	texture.setSmooth(true);
 	sf::Sprite sprite;
 	sprite.setTexture(texture);
-	Player player;
     while (window.isOpen())
     {
         sf::Event event;

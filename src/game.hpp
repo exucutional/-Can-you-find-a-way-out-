@@ -7,6 +7,7 @@ class Game
 	sf::RenderWindow window;
 	Player player;
 public:
+	Game() {}
 	void run();
 };
 
