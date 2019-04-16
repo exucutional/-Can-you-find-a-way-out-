@@ -19,10 +19,12 @@ using Vec = Vector <float>;
 class Gameobject
 {
 	Vec position;
+	Vec velocity;
 	Vec size;
 	sf::Sprite sprite;
 public:
 	Gameobject(Vec pos, Vec sz, sf::Sprite spr) : position(pos), size(sz), sprite(spr) {}
+	physHandler();
 	~Gameobject();
 };
 class Stats
@@ -32,7 +34,7 @@ class Stats
 public:
 	Stats() : hp(0), mp(0) {}
 };
-class Character : public Gameobject
+class Character : public GAMEOBJECT_HPP_
 {
 	Stats stats;
 	//class CharacterController control;	
