@@ -1,7 +1,7 @@
 #include <cassert>
 #include "game.hpp"
 
-void Game::run()
+int8_t App::run()
 {
 	window.create(sf::VideoMode(1500, 1000), "SFML works!");
     window.setMouseCursorVisible(true);
@@ -22,7 +22,7 @@ void Game::run()
         player.control.interaction();
         if (player.control.interrupt.exit())
         	break;
-        window.clear();
+        window.clear(sf::Color(200, 100, 50));
         window.draw(sprite);
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
         	sprite.move(sf::Vector2f(0.f, -1.f));
@@ -34,4 +34,9 @@ void Game::run()
         	sprite.move(sf::Vector2f(-1.f, 0.f));
         window.display();
     }
+    return EXIT_SUCCESS;
+}
+int8_t App::gameLoop()
+{
+    return EXIT_SUCCESS;
 }

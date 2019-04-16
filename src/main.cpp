@@ -3,9 +3,16 @@
 #include <SFML/Graphics.hpp>
 #include "game.hpp"
 
+
+//CollisionDetect
+//CollisionResponse
+//AccessAlidBoundyBox AABB
+//OOBB ObjectOrientedBoundyBox OOBB
+
+//virtual Collide(obj[i], obj[j]);
 int main()
 {
-    Game game;
-    game.run();
-    return EXIT_SUCCESS;
+    App game;
+    int8_t exitCode = game.run();
+    return exitCode;
 }
