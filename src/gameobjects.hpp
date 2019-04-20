@@ -2,7 +2,7 @@
 #define GAMEOBJECT_HPP_
 
 #include <SFML/Graphics.hpp>
-
+#include "animation.hpp"
 template <typename T>
 struct Vector
 {
@@ -16,66 +16,35 @@ struct Vector
 	Vector (const sf::Vector2 <U>& vec) : x ((T) vec.x), y ((T) vec.y) {}
 };
 using Vec = Vector <float>;
-class Gameobject
+class ControlManager
+{
+};
+class GameObject
 {
 	Vec position;
+	AnimationManager aManager;
+public:
+	GameObject(Vec pos) : position(pos), size(sz), aManager() {}
+	void render(sf::RenderWindow& window);
+	~GameObject();
+};
+class StaticGameObject : public GameObject
+{
+};
+class DynamicGameObject : public GameObject
+{
 	Vec velocity;
-	Vec size;
-	sf::Sprite sprite;
+	ControlManager cManager;
 public:
-	Gameobject(Vec pos, Vec sz, sf::Sprite spr) : position(pos), size(sz), sprite(spr) {}
-	physHandler();
-	~Gameobject();
-};
-class Stats
-{
-	int hp;
-	int mp;
-public:
-	Stats() : hp(0), mp(0) {}
-};
-class Character : public GAMEOBJECT_HPP_
-{
-	Stats stats;
-	//class CharacterController control;	
-	//class CharacterAnimationController animcontrol;
-	//class CharacterCollisionHandler collcontrol;
-public:
-	Character();
-	~Character();
-};
-class CharacterController
-{
-	;
-};
-class CharacterAnimationController
-{
-	;
-};
-class CharacterCollisionHandler 
-{
-	;
-};
-class InterruptHandler
-{
-	bool MenuCall;
-	bool ExitCall;
-public: 
-	InterruptHandler() : MenuCall(false), ExitCall(false) {}
-	void exitSet(bool val) {ExitCall = val;}
-	bool exit() {return ExitCall;}
-};
-class PlayerController
-{
-public:
-	InterruptHandler interrupt;
-	void interaction();
+	void physHandler();
+	void control();
 };
 class Player
 {
-	//Character character;
+	GameObject* mgObj;
 public:
-	PlayerController control;
+	Player();
+	void control();
 };
 
 #endif //GAMEOBJECT_HPP_

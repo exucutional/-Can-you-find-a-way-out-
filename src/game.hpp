@@ -1,20 +1,22 @@
 #ifndef GAME_HPP_
 #define GAME_HPP_
 #include "gameobjects.hpp"
-class AssetManager
+class ObjectManager
 {
-	;
+	std::vector<Gameobject*> objVec;
+public:
+	ObjectManager();
+	ObjectManager(unsigned objVecInit) : objVec(objVecInit) {}
+	~ObjectManager();
 };
 class App
 {
 	sf::RenderWindow window;
 	Player player;
-	AssetManager aManager;
+	ObjectManager oManager;
 public:
-	Game() {}
-	void run();
-	int8_t run();
-	int8_t gameLoop();
+	App() {}
+	int run();
+	int gameLoop();
 };
-
 #endif //GAME_HPP_

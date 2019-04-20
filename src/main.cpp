@@ -13,6 +13,6 @@
 int main()
 {
     App game;
-    int8_t exitCode = game.run();
+    int exitCode = game.run();
     return exitCode;
 }
