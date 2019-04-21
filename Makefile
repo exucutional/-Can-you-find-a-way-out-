@@ -9,17 +9,17 @@ LDFLAGS = -g -no-pie
 SFML = -lsfml-graphics -lsfml-window -lsfml-system 
 VPATH = ./src
 OBJPATH = ./compile
-SRCC = main.cpp gameobjects.cpp game.cpp
-HEAD = gameobjects.hpp game.hpp
+SRCC = main.cpp game.cpp gameobjects.cpp animation.cpp
+HEAD = game.hpp gameobjects.hpp animation.hpp
 SRCSASM = 
 OBJC = $(SRCC:%.cpp=$(OBJPATH)/%.o)
 OBJASM = $(SRCASM:.S=.o)
 EXECUTABLE_LINUX = run.out
 EXECUTABLE_WINDOWS = run.exe
 
-linux: $(OBJPATH) $(SRCC) $(SRCASM) $(EXECUTABLE_LINUX)
-
 windows: $(OBJPATH) $(SRCC) $(SRCASM) $(EXECUTABLE_WINDOWS)
+
+linux: $(OBJPATH) $(SRCC) $(SRCASM) $(EXECUTABLE_LINUX)
 
 $(OBJPATH):
 	@mkdir $@

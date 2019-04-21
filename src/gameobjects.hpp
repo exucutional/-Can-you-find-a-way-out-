@@ -3,47 +3,65 @@
 
 #include <SFML/Graphics.hpp>
 #include "animation.hpp"
+extern const sf::Time deltaTime;
+enum AnimationType {
+	aDown = 0,
+	aLeft,
+	aUp,
+	aRight,
+	AnimationTypeSize
+};
+/*
 template <typename T>
-struct Vector
+struct std::vector<float>tor
 {
 	T x, y;
-	Vector() : x (0), y (0) {}
+	std::vector<float>tor() : x (0), y (0) {}
 	template <typename U1, typename U2>
-	Vector (U1 x, U2 y) : x ((T) x), y ((T) y) {}
+	std::vector<float>tor (U1 x, U2 y) : x ((T) x), y ((T) y) {}
 	template <typename U>
-	Vector (const Vector <U>& vec) : x ((T) vec.x), y ((T) vec.y) {}
+	std::vector<float>tor (const std::vector<float>tor <U>& std::vector<float>) : x ((T) std::vector<float>.x), y ((T) std::vector<float>.y) {}
 	template <typename U>
-	Vector (const sf::Vector2 <U>& vec) : x ((T) vec.x), y ((T) vec.y) {}
+	std::vector<float>tor (const sf::std::vector<float>tor2 <U>& std::vector<float>) : x ((T) std::vector<float>.x), y ((T) std::vector<float>.y) {}
 };
-using Vec = Vector <float>;
-class ControlManager
-{
-};
+using std::vector<float> = std::vector<float>tor <float>;
+*/
 class GameObject
 {
-	Vec position;
+protected:
+	std::vector<const Animation*> animationVec = std::vector<const Animation*>(AnimationTypeSize);
 	AnimationManager aManager;
 public:
-	GameObject(Vec pos) : position(pos), size(sz), aManager() {}
-	void render(sf::RenderWindow& window);
-	~GameObject();
+	GameObject() {}
+	void addAnimation(const Animation* animation, std::size_t num);
+	void setAnimation(const Animation* animation);
+	const Animation* getAnimation(std::size_t num) const;
+	void setPosition(float x, float y);
+	void setPosition(const sf::Vector2f& position);
+	virtual void render(sf::RenderTarget& target, sf::Time frameTime);
+	virtual ~GameObject() {};
 };
 class StaticGameObject : public GameObject
 {
 };
 class DynamicGameObject : public GameObject
 {
-	Vec velocity;
-	ControlManager cManager;
+	std::vector<float> velocity;
 public:
-	void physHandler();
+	DynamicGameObject(std::vector<float> velocity_ = {0, 0}) : velocity(velocity_) {}
+	void setVelocity(std::vector<float> velocity_);
+	const std::vector<float> getVelocity() const;
+	virtual void render(sf::RenderTarget& target, sf::Time frameTime);
+	void update();
 	void control();
+	virtual ~DynamicGameObject() {};
 };
 class Player
 {
-	GameObject* mgObj;
+	DynamicGameObject* managedObject;
 public:
-	Player();
+	Player(): managedObject(nullptr) {};
+	void setObject(DynamicGameObject* object);
 	void control();
 };
 

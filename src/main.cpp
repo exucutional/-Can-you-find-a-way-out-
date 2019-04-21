@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include "game.hpp"
 
+const sf::Time deltaTime = sf::seconds(0.01f);
 
 //CollisionDetect
 //CollisionResponse

@@ -1,6 +1,7 @@
 #ifndef ANIMATION_HPP_
 #define ANIMATION_HPP_
 
+#include <SFML/Graphics.hpp>
 class Animation
 {
 	std::vector<sf::IntRect> Frames_;
@@ -24,18 +25,17 @@ class AnimationManager : public sf::Drawable, public sf::Transformable
 	bool isPaused_;
 	bool isLooped_;
 public:
-	AnimationManager(sf::Time frameTime = sf::seconds(0.2f), bool isPaused = false, bool isLooped = true);
+	AnimationManager(sf::Time frameTime = sf::seconds(0.2f), bool Pause = false, bool Loop = true);
 	void setAnimation(const Animation& animation);
 	const Animation* getAnimation() const;
 	void setFrameTime(sf::Time time);
-	void update(sf::Time detlaTime);
+	void update(sf::Time deltaTime);
 	void play();
 	void play(const Animation& animation);
 	void pause();
 	void stop();
 	void setLooped(bool Looped);
 	void setPaused(bool Paused);
-	const Animation* getAnimation() const;
 	sf::FloatRect getLocalBounds() const;
 	sf::FloatRect getGlobalBounds() const;
 	bool isLooped() const;
