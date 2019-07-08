@@ -1,9 +1,15 @@
 #ifndef GAMEOBJECT_HPP_
 #define GAMEOBJECT_HPP_
-
 #include <SFML/Graphics.hpp>
+#include <vector>
+#include <memory>
 #include "animation.hpp"
 extern const sf::Time deltaTime;
+#ifndef NDEBUG
+#define __DEBUG_EXEC(code) code
+#else
+#define __DEBUG_EXEC(code) ;
+#endif
 enum AnimationType {
 	aDown = 0,
 	aLeft,
@@ -29,17 +35,17 @@ using std::vector<float> = std::vector<float>tor <float>;
 class GameObject
 {
 protected:
-	std::vector<const Animation*> animationVec = std::vector<const Animation*>(AnimationTypeSize);
+	std::vector<std::shared_ptr<const Animation>> animationVec = std::vector<std::shared_ptr<const Animation>>(AnimationTypeSize);
 	AnimationManager aManager;
 public:
 	GameObject() {}
+	virtual ~GameObject() {}
 	void addAnimation(const Animation* animation, std::size_t num);
 	void setAnimation(const Animation* animation);
 	const Animation* getAnimation(std::size_t num) const;
 	void setPosition(float x, float y);
 	void setPosition(const sf::Vector2f& position);
 	virtual void render(sf::RenderTarget& target, sf::Time frameTime);
-	virtual ~GameObject() {};
 };
 class StaticGameObject : public GameObject
 {
@@ -48,13 +54,13 @@ class DynamicGameObject : public GameObject
 {
 	std::vector<float> velocity;
 public:
-	DynamicGameObject(std::vector<float> velocity_ = {0, 0}) : velocity(velocity_) {}
+	DynamicGameObject(std::vector<float> velocity_ = {0, 0});
+	~DynamicGameObject();
 	void setVelocity(std::vector<float> velocity_);
 	const std::vector<float> getVelocity() const;
 	virtual void render(sf::RenderTarget& target, sf::Time frameTime);
 	void update();
 	void control();
-	virtual ~DynamicGameObject() {};
 };
 class Player
 {
@@ -64,5 +70,4 @@ public:
 	void setObject(DynamicGameObject* object);
 	void control();
 };
-
 #endif //GAMEOBJECT_HPP_

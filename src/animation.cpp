@@ -1,16 +1,48 @@
 #include "animation.hpp"
-Animation::Animation() : Texture_(nullptr) {}
+Animation::Animation(): 
+texture_ptr(nullptr) 
+{
+	__DEBUG_EXEC(std::cout << "Animation()\n");
+}
+Animation::Animation(const Animation& animation)
+{
+	__DEBUG_EXEC(std::cout << "Animation(copy)");
+	texture_ptr = animation.texture_ptr;
+	Frames_ = animation.Frames_;
+}
+Animation::Animation(Animation&& animation)
+{
+	__DEBUG_EXEC(std::cout << "Animation(move)");
+	texture_ptr.swap(animation.texture_ptr);
+	Frames_.swap(animation.Frames_);
+}
+Animation& Animation::operator=(const Animation& animation)
+{
+	texture_ptr = animation.texture_ptr;
+	Frames_ = animation.Frames_;
+	return *this;
+}
+Animation& Animation::operator=(Animation&& animation)
+{
+	texture_ptr.swap(animation.texture_ptr);
+	Frames_.swap(animation.Frames_);
+	return *this;
+}
+Animation::~Animation() 
+{
+	__DEBUG_EXEC(std::cout << "~Animation()\n");
+}
 void Animation::addFrame(sf::IntRect rect)
 {
 	Frames_.push_back(rect);
 }
-void Animation::setSpriteSheet(const sf::Texture& texture)
+void Animation::setSpriteSheet(const sf::Texture* texture_ptr_)
 {
-	Texture_ = &texture;
+	texture_ptr = std::shared_ptr<const sf::Texture>(texture_ptr_);
 }
 const sf::Texture* Animation::getSpriteSheet() const
 {
-	return Texture_;
+	return texture_ptr.get();
 }
 std::size_t Animation::getSize() const
 {
@@ -20,13 +52,19 @@ const sf::IntRect& Animation::getFrame(std::size_t num) const
 {
 	return Frames_[num];
 }
-AnimationManager::AnimationManager(sf::Time frameTime, bool Pause, bool Loop) :
+AnimationManager::AnimationManager(sf::Time frameTime, bool Pause, bool Loop):
 	animation_(nullptr),
 	frameTime_(frameTime),
 	currentFrame_(0),
 	isPaused_(Pause),
 	isLooped_(Loop)
-{}
+{
+	__DEBUG_EXEC(std::cout << "AnimationManager(sf::Time, bool, bool)\n");
+}
+AnimationManager::~AnimationManager()
+{
+	__DEBUG_EXEC(std::cout << "~AnimationManager()\n");
+}
 void AnimationManager::setAnimation(const Animation& animation)
 {
 	animation_ = &animation;
@@ -56,6 +94,7 @@ void AnimationManager::stop()
 {
 	isPaused_ = true;
 	currentFrame_ = 0;
+	setFrame(currentFrame_, true);
 }
 void AnimationManager::setFrameTime(sf::Time time)
 {
@@ -132,6 +171,6 @@ void AnimationManager::draw(sf::RenderTarget& target, sf::RenderStates states) c
 	if (animation_ && texture_) {
 		states.transform *= getTransform();
 		states.texture = texture_;
-		target.draw(vertices, 	4, sf::Quads, states);
+		target.draw(vertices, 4, sf::Quads, states);
 	}
 }

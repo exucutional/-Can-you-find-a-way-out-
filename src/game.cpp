@@ -1,7 +1,47 @@
-#include <cassert>
 #include "game.hpp"
+AssetManager::AssetManager()
+{
+    __DEBUG_EXEC(std::cout << "AssetManager()\n");
+}
+AssetManager::~AssetManager()
+{
+    __DEBUG_EXEC(std::cout << "~AssetManager()\n");
+}
+StateManager::StateManager(sf::RenderWindow& window, AssetManager& asManager)
+{
+    __DEBUG_EXEC(std::cout << "StateManager(sf::RenderWindow&, AssetManager&)\n");
+    statVec.push_back(std::move(std::unique_ptr<MenuState>(new MenuState(window, asManager))));
+    statVec.push_back(std::move(std::unique_ptr<GameState>(new GameState(window, asManager))));
+    currentStateIndex = MENU_STATE;
+}
+StateManager::~StateManager()
+{
+    __DEBUG_EXEC(std::cout << "~StateManager()\n");
+}
+void StateManager::addState(State* state_ptr)
+{
+    if (state_ptr)
+        statVec.push_back(std::move(std::unique_ptr<State>(state_ptr)));
+}
+int StateManager::setState(std::size_t index)
+{
+    State* state_ptr = statVec[index].get();
+    if (state_ptr) {
+        currentStateIndex = index;
+        state_ptr->resume();
+        return state_ptr->gameLoop();
+    }
+    currentStateIndex = CLOSED_STATE;
+    fprintf(stderr, "State do not exist\n");
+    return CLOSED_STATE;
+}
+ObjectManager::ObjectManager()
+{
+    __DEBUG_EXEC(std::cout << "ObjectManager()\n");
+}
 ObjectManager::~ObjectManager() 
 {
+    __DEBUG_EXEC(std::cout << "~ObjectManager()\n");
     for (auto obj: objVec) {
         if (obj)
             delete obj;
@@ -29,21 +69,24 @@ void ObjectManager::render(sf::RenderTarget& target, sf::Time frameTime)
             obj->render(target, frameTime);
     }
 }
-void App::gameStep()
-{
-}
+/*
 void App::render(sf::RenderTarget& target, sf::Time frameTime)
 {
     target.clear(sf::Color(200, 100, 50));
     oManager.render(target, frameTime);
 }
+*/
+/*
 int App::init()
 {
     auto mainObj = new DynamicGameObject;
     player.setObject(mainObj);
     auto texture = new sf::Texture;
     if (!texture->loadFromFile("texture/animationtest.png"))
+    {
+        fprintf(stderr, "Loading texture error\n");     
         return EXIT_FAILURE;
+    }
     auto walkingAnimationDown = new Animation;
     walkingAnimationDown->setSpriteSheet(*texture);
     walkingAnimationDown->addFrame(sf::IntRect(32, 0, 32, 32));
@@ -78,16 +121,31 @@ int App::init()
     oManager.addObject(mainObj);
     return EXIT_SUCCESS;
 }
-int App::run()
+*/
+App::App() 
+:asManager(),
+sManager(window, asManager)
 {
-    sf::Vector2i screenDimensions(800,600);
-	window.create(sf::VideoMode(screenDimensions.x, screenDimensions.y), "animation test");
+    __DEBUG_EXEC(std::cout << "App()\n");
+    LuaScript script("data/setting.lua");
+    int width = script.get<int>("Window.Screen_resolution.width");
+    int height = script.get<int>("Window.Screen_resolution.height");
+    sf::Vector2i screenDimensions(width, height);
+    window.create(sf::VideoMode(screenDimensions.x, screenDimensions.y), "animation test");
     window.setFramerateLimit(144);
-    if(init())
-        assert(0);
-    gameLoop();
+}
+App::~App()
+{
+    __DEBUG_EXEC(std::cout << "~App()\n");
+}
+int App::run()
+{   
+    int nextStateIndex = GAME_STATE;
+    while ((nextStateIndex = sManager.setState(nextStateIndex)) != CLOSED_STATE);
+    //gameLoop();
     return EXIT_SUCCESS;
 }
+/*
 int App::gameLoop()
 {
     sf::Time accumulator = sf::seconds(0.f);
@@ -103,7 +161,7 @@ int App::gameLoop()
         currentTime = newTime;
         accumulator += frameTime;
         sf::Event event;
-        while (window.pollEvent(event)) {
+        while (window.pollEvent(event)) {   
             while (accumulator >= deltaTime) {
                 accumulator -= deltaTime;
                 switch (event.type) {
@@ -122,3 +180,4 @@ int App::gameLoop()
     }
     return EXIT_SUCCESS;
 }
+*/

@@ -1,29 +1,37 @@
 #ifndef GAME_HPP_
 #define GAME_HPP_
-#include "gameobjects.hpp"
+#include <iostream>
+#include <cassert>
+#include <memory>
+#include <vector>
+#include <SFML/Graphics.hpp>
+#include "luaScript.hpp"
+#include "state.hpp"
+#include "statemanager.hpp"
+
+#ifndef NDEBUG
+#define __DEBUG_EXEC(code) code
+#else
+#define __DEBUG_EXEC(code) ;
+#endif
+
 extern const sf::Time deltaTime;
-class ObjectManager
-{
-	std::vector<GameObject*> objVec;
-public:
-	ObjectManager() {}
-	void addObject(GameObject* newObj);
-	const GameObject* getObject(std::size_t num) const;
-	const std::size_t getSize() const;
-	void render(sf::RenderTarget& target, sf::Time frameTime);
-	~ObjectManager();
-};
+
 class App
 {
 	sf::RenderWindow window;
-	Player player;
-	ObjectManager oManager;
+	//Player player;
+	//ObjectManager oManager;
+	AssetManager asManager;
+	StateManager sManager;
+	//int init();
 public:
-	App() {}
+	App();
+	~App();
 	int run();
-	int init();
-	void gameStep();
-	void render(sf::RenderTarget& target, sf::Time frameTime);
-	int gameLoop();
+	//int init();
+	//void gameStep();
+	//void render(sf::RenderTarget& target, sf::Time frameTime);
+	//int gameLoop();
 };
 #endif //GAME_HPP_

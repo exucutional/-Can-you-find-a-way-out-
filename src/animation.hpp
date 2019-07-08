@@ -1,15 +1,27 @@
 #ifndef ANIMATION_HPP_
 #define ANIMATION_HPP_
-
 #include <SFML/Graphics.hpp>
+#include <iostream>
+#include <vector>
+#include <memory>
+#ifndef NDEBUG
+#define __DEBUG_EXEC(code) code
+#else
+#define __DEBUG_EXEC(code) ;
+#endif
 class Animation
 {
 	std::vector<sf::IntRect> Frames_;
-	const sf::Texture* Texture_;
+	std::shared_ptr<const sf::Texture> texture_ptr;
 public:
 	Animation();
+	Animation(const Animation& animation);
+	Animation(Animation&& animation);
+	Animation& operator=(const Animation& animation);
+	Animation& operator=(Animation&& animation);
+	~Animation();
 	void addFrame(sf::IntRect rect);
-	void setSpriteSheet(const sf::Texture& texture);
+	void setSpriteSheet(const sf::Texture* texture_ptr_);
 	const sf::Texture* getSpriteSheet() const;
 	std::size_t getSize() const;
 	const sf::IntRect& getFrame(std::size_t num) const;
@@ -26,6 +38,7 @@ class AnimationManager : public sf::Drawable, public sf::Transformable
 	bool isLooped_;
 public:
 	AnimationManager(sf::Time frameTime = sf::seconds(0.2f), bool Pause = false, bool Loop = true);
+	~AnimationManager();
 	void setAnimation(const Animation& animation);
 	const Animation* getAnimation() const;
 	void setFrameTime(sf::Time time);
@@ -44,5 +57,4 @@ public:
 	void setFrame(std::size_t newFrame, bool resetTime = true);
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 };
-
 #endif //ANIMATION_HPP_
