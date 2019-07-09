@@ -1,12 +1,12 @@
 #include "gameobjects.hpp"
-void GameObject::addAnimation(const Animation* animation, std::size_t num) 
+void GameObject::addAnimation(std::shared_ptr<const Animation> animation_ptr, std::size_t num) 
 {
 	if (num < AnimationTypeSize)
-		animationVec[num] = std::shared_ptr<const Animation>(animation);
+		animationVec[num] = animation_ptr;
 }
-void GameObject::setAnimation(const Animation* animation)
+void GameObject::setAnimation(const Animation* animation_ptr)
 {
-	aManager.setAnimation(*animation);
+	aManager.setAnimation(*animation_ptr);
 }
 const Animation* GameObject::getAnimation(std::size_t num) const 
 {

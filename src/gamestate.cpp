@@ -16,31 +16,31 @@ void GameState::init()
 {
 	auto mainObj = new DynamicGameObject;
     player.setObject(mainObj);
-    auto texture = new sf::Texture;
+    auto texture = asManager.create<sf::Texture>("mainTexture");
     if (!texture->loadFromFile("texture/animationtest.png"))
     {
         fprintf(stderr, "Loading texture error\n");     
         return;
     }
-    auto walkingAnimationDown = new Animation;
+    auto walkingAnimationDown = asManager.create<Animation>("walkingAnimationDown");
     walkingAnimationDown->setSpriteSheet(texture);
     walkingAnimationDown->addFrame(sf::IntRect(32, 0, 32, 32));
     walkingAnimationDown->addFrame(sf::IntRect(64, 0, 32, 32));
     walkingAnimationDown->addFrame(sf::IntRect(32, 0, 32, 32));
     walkingAnimationDown->addFrame(sf::IntRect( 0, 0, 32, 32));
-    auto walkingAnimationLeft = new Animation;
+    auto walkingAnimationLeft = asManager.create<Animation>("walkingAnimationLeft");
     walkingAnimationLeft->setSpriteSheet(texture);
     walkingAnimationLeft->addFrame(sf::IntRect(32, 32, 32, 32));
     walkingAnimationLeft->addFrame(sf::IntRect(64, 32, 32, 32));
     walkingAnimationLeft->addFrame(sf::IntRect(32, 32, 32, 32));
     walkingAnimationLeft->addFrame(sf::IntRect( 0, 32, 32, 32));
-    auto walkingAnimationRight = new Animation;
+    auto walkingAnimationRight = asManager.create<Animation>("walkingAnimationRight");
     walkingAnimationRight->setSpriteSheet(texture);
     walkingAnimationRight->addFrame(sf::IntRect(32, 64, 32, 32));
     walkingAnimationRight->addFrame(sf::IntRect(64, 64, 32, 32));
     walkingAnimationRight->addFrame(sf::IntRect(32, 64, 32, 32));
     walkingAnimationRight->addFrame(sf::IntRect( 0, 64, 32, 32));
-    auto walkingAnimationUp = new Animation;
+    auto walkingAnimationUp = asManager.create<Animation>("walkingAnimationUp");
     walkingAnimationUp->setSpriteSheet(texture);
     walkingAnimationUp->addFrame(sf::IntRect(32, 96, 32, 32));
     walkingAnimationUp->addFrame(sf::IntRect(64, 96, 32, 32));
@@ -54,11 +54,6 @@ void GameState::init()
     mainObj->setPosition(sf::Vector2f({0, 0}));
     mainObj->setAnimation(mainObj->getAnimation(aDown));
     oManager.addObject(mainObj);
-    asManager.add<sf::Texture>("texture_main", texture);
-    asManager.add<Animation>("animation_down", walkingAnimationDown);
-    asManager.add<Animation>("animation_left", walkingAnimationLeft);
-    asManager.add<Animation>("animation_right", walkingAnimationRight);
-    asManager.add<Animation>("animation_up", walkingAnimationUp);
 }
 void GameState::pause()
 {

@@ -40,8 +40,8 @@ protected:
 public:
 	GameObject() {}
 	virtual ~GameObject() {}
-	void addAnimation(const Animation* animation, std::size_t num);
-	void setAnimation(const Animation* animation);
+	void addAnimation(std::shared_ptr<const Animation> animation_ptr, std::size_t num);
+	void setAnimation(const Animation* animation_ptr);
 	const Animation* getAnimation(std::size_t num) const;
 	void setPosition(float x, float y);
 	void setPosition(const sf::Vector2f& position);
