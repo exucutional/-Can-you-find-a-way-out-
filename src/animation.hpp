@@ -22,6 +22,7 @@ public:
 	~Animation();
 	void addFrame(sf::IntRect rect);
 	void setSpriteSheet(const sf::Texture* texture_ptr_);
+	void setSpriteSheet(std::shared_ptr<const sf::Texture> texture_ptr_);
 	const sf::Texture* getSpriteSheet() const;
 	std::size_t getSize() const;
 	const sf::IntRect& getFrame(std::size_t num) const;
