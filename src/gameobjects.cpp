@@ -18,7 +18,13 @@ void GameObject::render(sf::RenderTarget& target, sf::Time frameTime)
 {
 	aManager.play();
 	aManager.update(frameTime);
+	sf::FloatRect fRect = aManager.getGlobalBounds();
+	collision.collider.setOBBposition(fRect.left, fRect.top);
+	sf::Vector2f size(fRect.width, fRect.height);
+	collision.collider.setOBBsize(size);
 	target.draw(aManager);
+	target.draw(collision.collider.getInfo());
+	target.draw(collision.collider.getOBB());
 }
 void GameObject::setPosition(float x, float y)
 {
@@ -86,13 +92,24 @@ void DynamicGameObject::render(sf::RenderTarget& target, sf::Time frameTime)
 	aManager.update(frameTime);
 	update();
 	target.draw(aManager);
+	sf::FloatRect fRect = aManager.getGlobalBounds();
+	collision.collider.setOBBposition(fRect.left, fRect.top);
+	sf::Vector2f size(fRect.width, fRect.height);
+	collision.collider.setOBBsize(size);
+	target.draw(aManager);
+	target.draw(collision.collider.getInfo());
+	target.draw(collision.collider.getOBB());
 }
-void Player::setObject(DynamicGameObject* object)
+void Player::setObject(DynamicGameObject* obj_ptr_)
 {
-	managedObject = object;
+	obj_ptr = std::shared_ptr<DynamicGameObject>(obj_ptr_);
+}
+void Player::setObject(std::shared_ptr<DynamicGameObject> obj_ptr_)
+{
+	obj_ptr = obj_ptr_;
 }
 void Player::control()
 {
-	managedObject->control();
+	obj_ptr->control();
 }
 

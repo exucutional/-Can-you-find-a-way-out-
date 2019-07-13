@@ -2,11 +2,6 @@
 
 const sf::Time deltaTime = sf::seconds(0.01f);
 
-//CollisionDetect
-//CollisionResponse
-//AccessAlidBoundyBox AABB
-//OOBB ObjectOrientedBoundyBox OOBB
-
 //virtual Collide(obj[i], obj[j]);
 
 int LuaTest()

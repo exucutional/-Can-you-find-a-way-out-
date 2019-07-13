@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include "animation.hpp"
+#include "collision.hpp"
 extern const sf::Time deltaTime;
 #ifndef NDEBUG
 #define __DEBUG_EXEC(code) code
@@ -17,25 +18,11 @@ enum AnimationType {
 	aRight,
 	AnimationTypeSize
 };
-/*
-template <typename T>
-struct std::vector<float>tor
-{
-	T x, y;
-	std::vector<float>tor() : x (0), y (0) {}
-	template <typename U1, typename U2>
-	std::vector<float>tor (U1 x, U2 y) : x ((T) x), y ((T) y) {}
-	template <typename U>
-	std::vector<float>tor (const std::vector<float>tor <U>& std::vector<float>) : x ((T) std::vector<float>.x), y ((T) std::vector<float>.y) {}
-	template <typename U>
-	std::vector<float>tor (const sf::std::vector<float>tor2 <U>& std::vector<float>) : x ((T) std::vector<float>.x), y ((T) std::vector<float>.y) {}
-};
-using std::vector<float> = std::vector<float>tor <float>;
-*/
 class GameObject
 {
 protected:
 	std::vector<std::shared_ptr<const Animation>> animationVec = std::vector<std::shared_ptr<const Animation>>(AnimationTypeSize);
+	Collision collision;
 	AnimationManager aManager;
 public:
 	GameObject() {}
@@ -64,10 +51,11 @@ public:
 };
 class Player
 {
-	DynamicGameObject* managedObject;
+	std::shared_ptr<DynamicGameObject> obj_ptr;
 public:
-	Player(): managedObject(nullptr) {};
-	void setObject(DynamicGameObject* object);
+	Player(): obj_ptr(nullptr) {};
+	void setObject(DynamicGameObject* obj_ptr);
+	void setObject(std::shared_ptr<DynamicGameObject> obj_ptr);
 	void control();
 };
 #endif //GAMEOBJECT_HPP_

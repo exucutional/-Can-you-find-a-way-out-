@@ -42,7 +42,7 @@ inline void AssetManager::add<sf::Texture>(const std::string& key, sf::Texture* 
 }
 template<>
 inline void AssetManager::add<sf::Texture>(const std::string& key, std::shared_ptr<sf::Texture> texture_ptr)
-{;
+{
 	if (!texture_ptr)
 		fprintf(stderr, "AssetManager::add shared_ptr<sf::Texture> error");
 	tMap.insert(std::pair<std::string, std::shared_ptr<sf::Texture>>(key, texture_ptr));

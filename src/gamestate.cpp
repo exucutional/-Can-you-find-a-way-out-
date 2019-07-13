@@ -14,8 +14,6 @@ GameState::~GameState()
 }
 void GameState::init()
 {
-	auto mainObj = new DynamicGameObject;
-    player.setObject(mainObj);
     auto texture = asManager.create<sf::Texture>("mainTexture");
     if (!texture->loadFromFile("texture/animationtest.png"))
     {
@@ -46,6 +44,8 @@ void GameState::init()
     walkingAnimationUp->addFrame(sf::IntRect(64, 96, 32, 32));
     walkingAnimationUp->addFrame(sf::IntRect(32, 96, 32, 32));
     walkingAnimationUp->addFrame(sf::IntRect( 0, 96, 32, 32));
+    auto mainObj = oManager.create<DynamicGameObject>();
+    player.setObject(mainObj);
     mainObj->addAnimation(walkingAnimationDown, aDown);
     mainObj->addAnimation(walkingAnimationLeft, aLeft);
     mainObj->addAnimation(walkingAnimationUp, aUp);
@@ -53,7 +53,6 @@ void GameState::init()
     mainObj->setVelocity({0.f, 0.f});
     mainObj->setPosition(sf::Vector2f({0, 0}));
     mainObj->setAnimation(mainObj->getAnimation(aDown));
-    oManager.addObject(mainObj);
 }
 void GameState::pause()
 {

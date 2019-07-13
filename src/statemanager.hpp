@@ -12,9 +12,6 @@ public:
 	StateManager(sf::RenderWindow& window, AssetManager& asManager);
 	~StateManager();
 	void addState(State* state_ptr);
-	//const State& getState(std::size_t index) const;
-	//const State& getCurrentState() const;
-	//std::size_t getCurrentStateIndex() const;
 	int setState(std::size_t index);
 };
 #endif //STATEMANAGER_HPP_

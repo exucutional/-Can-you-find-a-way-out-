@@ -8,6 +8,7 @@
 #include "luaScript.hpp"
 #include "state.hpp"
 #include "statemanager.hpp"
+#include "collision.hpp"
 
 #ifndef NDEBUG
 #define __DEBUG_EXEC(code) code
@@ -20,18 +21,11 @@ extern const sf::Time deltaTime;
 class App
 {
 	sf::RenderWindow window;
-	//Player player;
-	//ObjectManager oManager;
 	AssetManager asManager;
 	StateManager sManager;
-	//int init();
 public:
 	App();
 	~App();
 	int run();
-	//int init();
-	//void gameStep();
-	//void render(sf::RenderTarget& target, sf::Time frameTime);
-	//int gameLoop();
 };
 #endif //GAME_HPP_
