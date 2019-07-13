@@ -5,3 +5,4 @@ Window = {
 		height = 768,
 	}
 }
+FontPath = "data/arial.ttf"

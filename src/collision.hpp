@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cassert>
 #include <sstream>
+#include "luaScript.hpp"
 #ifndef NDEBUG
 #define __DEBUG_EXEC(code) code
 #else

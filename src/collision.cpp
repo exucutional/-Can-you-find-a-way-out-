@@ -92,7 +92,9 @@ Collider::Collider()
 	rectangle.setFillColor(sf::Color::Transparent);
 	rectangle.setOutlineThickness(OUTLINE_THICKNESS);
 	rectangle.setOutlineColor(sf::Color::White);
-	font.loadFromFile("data/arial.ttf");
+	LuaScript script("data/setting.lua");
+	std::string fontPath = script.get<std::string>("FontPath");
+	font.loadFromFile(fontPath);
 	info.setFont(font);
 	info.setStyle(sf::Text::Regular);
 	info.setFillColor(sf::Color::White);
