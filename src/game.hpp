@@ -9,7 +9,7 @@
 #include "state.hpp"
 #include "statemanager.hpp"
 #include "collision.hpp"
-
+#include "LuaBridge.h"
 #ifndef NDEBUG
 #define __DEBUG_EXEC(code) code
 #else
