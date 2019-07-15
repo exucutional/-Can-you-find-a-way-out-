@@ -8,7 +8,8 @@
 #include "gameobjects.hpp"
 #include "objectmanager.hpp"
 #include "assetmanager.hpp"
-
+#include "assert.hpp"
+#include "sol/sol.hpp"
 extern const sf::Time deltaTime;
 
 #ifndef NDEBUG

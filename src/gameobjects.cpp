@@ -1,12 +1,16 @@
 #include "gameobjects.hpp"
-void GameObject::addAnimation(std::shared_ptr<const Animation> animation_ptr, std::size_t num) 
+void GameObject::addAnimation(std::shared_ptr<Animation> animation_ptr, std::size_t num) 
 {
+	assert(animation_ptr);
 	if (num < AnimationTypeSize)
 		animationVec[num] = animation_ptr;
+	else
+		assert(0);
 }
-void GameObject::setAnimation(const Animation* animation_ptr)
+void GameObject::setAnimation(std::size_t num)
 {
-	aManager.setAnimation(*animation_ptr);
+	assert(animationVec[num]);
+	aManager.setAnimation(*animationVec[num].get());
 }
 const Animation* GameObject::getAnimation(std::size_t num) const 
 {
@@ -102,14 +106,19 @@ void DynamicGameObject::render(sf::RenderTarget& target, sf::Time frameTime)
 }
 void Player::setObject(DynamicGameObject* obj_ptr_)
 {
+	assert(obj_ptr_);
 	obj_ptr = std::shared_ptr<DynamicGameObject>(obj_ptr_);
 }
 void Player::setObject(std::shared_ptr<DynamicGameObject> obj_ptr_)
 {
+	assert(obj_ptr_);
 	obj_ptr = obj_ptr_;
 }
 void Player::control()
 {
 	obj_ptr->control();
 }
-
+std::shared_ptr<DynamicGameObject> Player::getObject()
+{
+	return obj_ptr;
+}

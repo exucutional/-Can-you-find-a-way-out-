@@ -2,12 +2,13 @@ CC = g++
 ASM = nasm
 LD = g++
 
-LUA_DIR = D:/Programming/unknown-game/lua-5.3.5/src
+LUA_DIR = lua-5.3.5/src
 SFML_DIR= C:/SFML
+SOL2_DIR = sol2/include
 SFML_LIB_DIR= $(SFML_DIR)/lib
 INCDIR = $(SFML_DIR)/include
 
-CFLAGS = -c -g -O3 -Wall -I$(INCDIR) -I$(LUA_DIR)
+CFLAGS = -c -std=c++17 -g -O3 -Wall -I$(INCDIR) -I$(LUA_DIR) -I$(SOL2_DIR)
 AFLAGS = -f elf64	
 LDFLAGS = -g -no-pie
 SFML = -lsfml-graphics -lsfml-window -lsfml-system 

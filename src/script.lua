@@ -13,7 +13,3 @@ player = {
     filename = "res/images/player.png",
     HP = 20,
 }
-
-function testprint(str)
-	print(str)
-end

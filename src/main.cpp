@@ -3,34 +3,48 @@
 const sf::Time deltaTime = sf::seconds(0.01f);
 
 //virtual Collide(obj[i], obj[j]);
-
-int LuaTest()
+class B
 {
-	LuaScript script("src/script.lua");
-	std::string filename = script.get<std::string>("testString");
-	int posX = script.get<int>("player.pos.lol.Z");
-	std::cout << "filename: " << filename << "\npos:" << posX << std::endl; 
-	script.testprint("Hello world!\n");
-	return EXIT_SUCCESS;
-}
-void LuaBridgeTest()
+	std::string str;
+public:
+	B() {str = "col2 class\n";}
+	void print() {std::cout << str;}
+};
+class A
 {
-	lua_State* L = luaL_newstate();
-    luaL_dofile(L, "src/script.lua");
-    luaL_openlibs(L);
-    lua_pcall(L, 0, 0, 0);
-    luabridge::LuaRef s = luabridge::getGlobal(L, "testString");
-    luabridge::LuaRef n = luabridge::getGlobal(L, "number");
-    std::string luaString = s.cast<std::string>();
-    int answer = n.cast<int>();
-	std::cout << luaString << std::endl;
-    std::cout << "And here's our number:" << answer << std::endl;
+	B b;
+public:
+	void print() {b.print();}
+	void scripttest() 
+	{
+		sol::state lua;
+		lua.open_libraries(sol::lib::base, sol::lib::math);
+		lua.new_usertype<A>("A", sol::constructors<A()>(),
+		"print", &A::print);
+		lua.new_usertype<B>("B", sol::constructors<B()>(),
+		"print", &B::print);
+		lua["b"] = std::ref(A::b);
+		lua.script("b:print()");
+	}
+};
+void sol3test()
+{
+	auto a = std::make_shared<A>();
+	a->scripttest();
+	sol::state lua;
+	lua.open_libraries(sol::lib::base, sol::lib::math);
+	lua.new_usertype<A>("A", sol::constructors<A()>(),
+		"print", &A::print);
+	//lua.new_usertype<B>("B", sol::constructors<B()>(),
+	//	"print", &B::print);
+	lua.script_file("src/script.lua");
+	//lua["test"](a);
 }
 int main()
 {
-	LuaBridgeTest();
-    App game;
-    int exitCode = game.run();
-    return exitCode;
-    return 0;
+	//sol3test();
+	App game;
+	int exitCode = game.run();
+	return exitCode;
+	return 0;
 }

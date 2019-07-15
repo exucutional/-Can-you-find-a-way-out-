@@ -15,14 +15,18 @@ public:
 	std::shared_ptr<T> get(const std::string& key) {
 		return nullptr;
 	}
+	template<typename... Args>
+	std::shared_ptr<sf::Texture> createTexture(const std::string& key, Args... args);
+	template<typename... Args>
+	std::shared_ptr<Animation> createAnimation(const std::string& key, Args... args);
 	template<typename T>
-	std::shared_ptr<T> create(const std::string& key) {
-		return nullptr;
+	void add(const std::string& key, T* value) {
+		std::cerr << "AssetManager::add type error\n";
 	}
 	template<typename T>
-	void add(const std::string& key, T* value) {}
-	template<typename T>
-	void add(const std::string& key, std::shared_ptr<T> value) {}
+	void add(const std::string& key, std::shared_ptr<T> value) {
+		std::cerr << "AssetManager::add type error\n";
+	}
 };
 template<>
 inline std::shared_ptr<sf::Texture> AssetManager::get<sf::Texture>(const std::string& key)
@@ -47,10 +51,10 @@ inline void AssetManager::add<sf::Texture>(const std::string& key, std::shared_p
 		fprintf(stderr, "AssetManager::add shared_ptr<sf::Texture> error");
 	tMap.insert(std::pair<std::string, std::shared_ptr<sf::Texture>>(key, texture_ptr));
 }
-template<>
-inline std::shared_ptr<sf::Texture> AssetManager::create<sf::Texture>(const std::string& key)
+template<typename... Args>
+inline std::shared_ptr<sf::Texture> AssetManager::createTexture(const std::string& key, Args... args)
 {
-	auto texture_ptr = std::make_shared<sf::Texture>();
+	auto texture_ptr = std::make_shared<sf::Texture>(args...);
 	if (!texture_ptr)
 		fprintf(stderr, "AssetManager::create shared_ptr<sf::Texture> error");
 	tMap.insert(std::pair<std::string, std::shared_ptr<sf::Texture>>(key, texture_ptr));
@@ -79,10 +83,10 @@ inline void AssetManager::add<Animation>(const std::string& key, std::shared_ptr
 		fprintf(stderr, "AssetManager::add shared_ptr<Animation> error");
 	aMap.insert(std::pair<std::string, std::shared_ptr<Animation>>(key, animation_ptr));
 }
-template<>
-inline std::shared_ptr<Animation> AssetManager::create<Animation>(const std::string& key)
+template<typename... Args>
+inline std::shared_ptr<Animation> AssetManager::createAnimation(const std::string& key, Args... args)
 {
-	auto animation_ptr = std::make_shared<Animation>();
+	auto animation_ptr = std::make_shared<Animation>(args...);
 	if (!animation_ptr)
 		fprintf(stderr, "AssetManager::create shared_ptr<Animation> error");
 	aMap.insert(std::pair<std::string, std::shared_ptr<Animation>>(key, animation_ptr));

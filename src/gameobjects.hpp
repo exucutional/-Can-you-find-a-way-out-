@@ -27,8 +27,8 @@ protected:
 public:
 	GameObject() {}
 	virtual ~GameObject() {}
-	void addAnimation(std::shared_ptr<const Animation> animation_ptr, std::size_t num);
-	void setAnimation(const Animation* animation_ptr);
+	void addAnimation(std::shared_ptr<Animation> animation_ptr, std::size_t num);
+	void setAnimation(std::size_t num);
 	const Animation* getAnimation(std::size_t num) const;
 	void setPosition(float x, float y);
 	void setPosition(const sf::Vector2f& position);
@@ -56,6 +56,7 @@ public:
 	Player(): obj_ptr(nullptr) {};
 	void setObject(DynamicGameObject* obj_ptr);
 	void setObject(std::shared_ptr<DynamicGameObject> obj_ptr);
+	std::shared_ptr<DynamicGameObject> getObject();
 	void control();
 };
 #endif //GAMEOBJECT_HPP_

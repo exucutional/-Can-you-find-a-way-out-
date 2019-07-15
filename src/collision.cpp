@@ -102,7 +102,7 @@ Collider::Collider()
 }
 Collider::~Collider()
 {
-	__DEBUG_EXEC(std::cout << "~Collider\n");
+	__DEBUG_EXEC(std::cout << "~Collider()\n");
 }
 const sf::RectangleShape& Collider::getOBB()
 {
@@ -136,11 +136,11 @@ void Collider::setOBBsize(const sf::Vector2f& size)
 }
 Collision::Collision()
 {
-	__DEBUG_EXEC(std::cout << "Collision\n");
+	__DEBUG_EXEC(std::cout << "Collision()\n");
 }
 Collision::~Collision()
 {
-	__DEBUG_EXEC(std::cout << "~Collision\n");
+	__DEBUG_EXEC(std::cout << "~Collision()\n");
 }
 bool Collision::intersect(const sf::CircleShape& circle1, const sf::CircleShape& circle2, sf::Vector2f* mtv_ptr)
 {

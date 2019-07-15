@@ -1,3 +1,6 @@
 [submodule "lua-5.3.5"]
 	path = lua-5.3.5
 	url = https://github.com/exucutional/lua-5.3.5.git
+[submodule "sol2"]
+	path = sol2
+	url = https://github.com/ThePhD/sol2.git
