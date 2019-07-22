@@ -16,8 +16,8 @@ SFML = -lsfml-graphics -lsfml-window -lsfml-system
 VPATH = ./src
 OBJPATH = ./compile
 
-SRCC = luaScript.cpp main.cpp game.cpp gameobjects.cpp animation.cpp gamestate.cpp menustate.cpp collision.cpp
-HEAD = luaScript.hpp game.hpp assetmanager.hpp statemanager.hpp objectmanager.hpp gameobjects.hpp animation.hpp state.hpp collision.hpp				
+SRCC = luaScript.cpp main.cpp game.cpp gameobjects.cpp animation.cpp gamestate.cpp menustate.cpp collision.cpp interaction.cpp
+HEAD = luaScript.hpp game.hpp assetmanager.hpp statemanager.hpp objectmanager.hpp gameobjects.hpp animation.hpp state.hpp collision.hpp interaction.hpp		
 SRCSASM =
 
 OBJC = $(SRCC:%.cpp=$(OBJPATH)/%.o)

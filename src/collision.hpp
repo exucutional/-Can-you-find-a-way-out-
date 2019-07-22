@@ -12,6 +12,12 @@
 #else
 #define __DEBUG_EXEC(code) ;
 #endif
+enum COLLIDE_MODE 
+{
+	CIRCLE_MODE = 0,
+	RECT_MODE, 
+	CONVEX_MODE,
+};
 class Collider
 {
 	sf::CircleShape circle;
@@ -21,22 +27,25 @@ class Collider
 	sf::Font font;
 public:
 	Collider();
-	const sf::RectangleShape& getOBB();
-	void setOBBposition(float x, float y);
-	void setOBBposition (const sf::Vector2f& position);
-	void setOBBsize(const sf::Vector2f &size);
-	const sf::Text& getInfo();
+	const sf::CircleShape& getCircle() const;
+	const sf::RectangleShape& getRect() const;
+	const sf::ConvexShape& getConvex() const;
+	void setRectPosition(float x, float y);
+	void setRectPosition (const sf::Vector2f& position);
+	void setRectSize(const sf::Vector2f &size);
+	void setConvexPointCount(std::size_t count);
+	void setConvexPoint(std::size_t index, const sf::Vector2f& point);
+	const sf::Text& getInfo() const;
 	~Collider();
 };
 class Collision
 {
 public:
-	Collider collider;
 	Collision();
 	~Collision();
 	bool intersect(const sf::CircleShape& circle1, const sf::CircleShape& circle2, sf::Vector2f* mtv_ptr = nullptr);
 	bool intersect(const sf::RectangleShape& rectangle1, const sf::RectangleShape& rectangle2, sf::Vector2f* mtv_ptr = nullptr);
 	bool intersect(const sf::ConvexShape& convex1, const sf::ConvexShape& convex2, sf::Vector2f* mtv_ptr = nullptr);
-	bool SATcollison(const sf::ConvexShape& convex1, const sf::ConvexShape& convex2);
+	bool isCollide(const Collider& collider1, const Collider& collider2, int collideMode, sf::Vector2f* mtv_ptr = nullptr);
 };
 #endif //COLLISION_HPP_

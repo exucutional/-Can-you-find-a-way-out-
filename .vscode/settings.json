@@ -1,0 +1,17 @@
+{
+  "editor.fontSize": 16,
+  "files.exclude": {
+    "**/README": true,
+    "**/README.*": true,
+    "game.code-workspace": true,
+    "run.exe": true,
+    ".gitignore": true,
+    ".gitattributes": true,
+    "src\\TheGame.sublime-project": true,
+    "src\\TheGame.sublime-workspace": true,
+    ".gitmodules": true,
+    "compile": true,
+    "sol2": true,
+    "lua-5.3.5": true
+  }
+}

@@ -5,7 +5,6 @@
 #include <memory>
 #include <vector>
 #include <SFML/Graphics.hpp>
-#include "assert.hpp"
 #include "luaScript.hpp"
 #include "state.hpp"
 #include "statemanager.hpp"

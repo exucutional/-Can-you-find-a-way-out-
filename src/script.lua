@@ -13,3 +13,6 @@ player = {
     filename = "res/images/player.png",
     HP = 20,
 }
+function test()
+    print "test"
+end

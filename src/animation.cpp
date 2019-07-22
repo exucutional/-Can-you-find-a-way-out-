@@ -40,7 +40,7 @@ void Animation::setSpriteSheet(const sf::Texture* texture_ptr_)
 {
 	texture_ptr = std::shared_ptr<const sf::Texture>(texture_ptr_);
 }
-void Animation::setSpriteSheet(std::shared_ptr<const sf::Texture> texture_ptr_)
+void Animation::setSpriteSheet(std::shared_ptr<sf::Texture> texture_ptr_)
 {
 	texture_ptr = texture_ptr_;
 }

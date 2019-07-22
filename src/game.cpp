@@ -1,4 +1,5 @@
 #include "game.hpp"
+static const float REPULSION_RATE = 50;
 AssetManager::AssetManager()
 {
     __DEBUG_EXEC(std::cout << "AssetManager()\n");
@@ -43,29 +44,65 @@ ObjectManager::~ObjectManager()
 {
     __DEBUG_EXEC(std::cout << "~ObjectManager()\n");
 }
-void ObjectManager::addObject(GameObject* obj_ptr)
+void ObjectManager::addDynamicObject(std::shared_ptr<DynamicGameObject> obj_ptr)
 {
-    objVec.push_back(std::shared_ptr<GameObject>(obj_ptr));
+    assert(obj_ptr);
+    dynObjVec.push_back(obj_ptr);
 }
-void ObjectManager::addObject(std::shared_ptr<GameObject> obj_ptr)
+void ObjectManager::addStaticObject(std::shared_ptr<StaticGameObject> obj_ptr)
 {
-    objVec.push_back(obj_ptr);
+    assert(obj_ptr);
+    stObjVec.push_back(obj_ptr);
 }
-std::shared_ptr<GameObject> ObjectManager::getObject(std::size_t num) const
+std::shared_ptr<DynamicGameObject> ObjectManager::getDynObject(std::size_t num) const
 {
-    if (num <= objVec.size())
-        return objVec[num];
+    if (num <= dynObjVec.size())
+        return dynObjVec[num];
     return nullptr;
 }
-const std::size_t ObjectManager::getSize() const
+std::shared_ptr<StaticGameObject> ObjectManager::getStObject(std::size_t num) const
 {
-    return objVec.size();
+    if (num <= stObjVec.size())
+        return stObjVec[num];
+    return nullptr;
+}
+const std::size_t ObjectManager::getDynSize() const
+{
+    return dynObjVec.size();
+}
+const std::size_t ObjectManager::getStSize() const
+{
+    return stObjVec.size();
 }
 void ObjectManager::render(sf::RenderTarget& target, sf::Time frameTime)
 {
-    for (auto obj: objVec) {
+    for (auto& obj: dynObjVec) {
         if (obj)
             obj->render(target, frameTime);
+    }
+    for (auto& obj: stObjVec) {
+        if (obj)
+            obj->render(target, frameTime);
+    }
+}
+void ObjectManager::interact()
+{
+    auto size = dynObjVec.size();
+    sf::Vector2f mtv;
+    sf::Vector2f* mtv_ptr = &mtv;
+    for (std::size_t i = 0; i < size - 1; i++) {
+        for (std::size_t j = i; j < size - 1; j++) {
+            if (collision.isCollide(dynObjVec[j]->getCollider(), dynObjVec[j + 1]->getCollider(), CONVEX_MODE, mtv_ptr)) {
+                intManager.interact(*dynObjVec[j], *dynObjVec[j + 1], mtv);
+            }
+        }
+    }
+}
+void ObjectManager::update()
+{
+    for (auto& obj: dynObjVec) {
+        if (obj)
+            obj->update();
     }
 }
 App::App() 

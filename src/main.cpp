@@ -29,16 +29,13 @@ public:
 };
 void sol3test()
 {
-	auto a = std::make_shared<A>();
-	a->scripttest();
 	sol::state lua;
-	lua.open_libraries(sol::lib::base, sol::lib::math);
-	lua.new_usertype<A>("A", sol::constructors<A()>(),
-		"print", &A::print);
-	//lua.new_usertype<B>("B", sol::constructors<B()>(),
-	//	"print", &B::print);
-	lua.script_file("src/script.lua");
-	//lua["test"](a);
+	sol::state lua2;
+	lua2.open_libraries(sol::lib::base);
+	sol::load_result lr = lua.load("print 'hello'; a = function (v) print(v) return v end");
+	sol::protected_function target = lr;
+	sol::bytecode target_bc = target.dump();
+	auto result2 = lua2.safe_script(target_bc.as_string_view(), sol::script_pass_on_error);
 }
 int main()
 {
