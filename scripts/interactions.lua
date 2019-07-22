@@ -3,5 +3,5 @@ function player_ball(player, mtv)
     player:move(mtv)
 end
 function ball_player(ball, mtv)
-    ball:setVelocity(mtv * -objects.repulsion_rate)
+    ball:setVelocity(mtv * -setting.repulsion_rate)
 end

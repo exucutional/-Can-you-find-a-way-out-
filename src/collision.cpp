@@ -76,11 +76,11 @@ static std::vector<sf::Vector2f> getPerpendicularAxes(const sf::ConvexShape& con
 	assert(pointCount1 >= 3);
 	auto pointCount2 = convex2.getPointCount();
 	assert(pointCount2 >= 3);
-	for (std::size_t i = 1; i <= pointCount1; i++) {
+	for (std::size_t i = 1; i < pointCount1; i++) {
 		axes.push_back(getPerpendicularAxis(convex1.getPoint(i), convex1.getPoint(i - 1)));
 	}
 	axes.push_back(getPerpendicularAxis(convex1.getPoint(0), convex1.getPoint(pointCount1 - 1)));
-	for (std::size_t i = 1; i <= pointCount2; i++) {
+	for (std::size_t i = 1; i < pointCount2; i++) {
 		axes.push_back(getPerpendicularAxis(convex2.getPoint(i), convex2.getPoint(i - 1)));
 	}
 	axes.push_back(getPerpendicularAxis(convex2.getPoint(0), convex2.getPoint(pointCount2 - 1)));

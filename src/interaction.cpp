@@ -43,7 +43,7 @@ void InteractionManager::InteractionManager::initScripts()
     sol::protected_function_result script_result = lua.script_file("scripts/objects.lua");
     //sol::load_result script = lua.load_file("scripts/objects.lua");
     assert(script_result.valid());
-    std::size_t type_max = lua["objects"]["type_max"];
+    std::size_t type_max = lua["setting"]["type_max"];
     scriptVec = std::vector<std::vector<std::string>>(type_max, std::vector<std::string>(type_max));
     script_result = lua.script_file("scripts/interaction_init.lua");
     assert(script_result.valid());

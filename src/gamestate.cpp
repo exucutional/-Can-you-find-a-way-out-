@@ -17,7 +17,9 @@ void GameState::init()
     lua.open_libraries(sol::lib::base, sol::lib::package);
     lua.new_usertype<AssetManager>("AssetManager", sol::constructors<AssetManager()>(),
         "createTexture", &AssetManager::createTexture<>,
-        "createAnimation", &AssetManager::createAnimation<>);
+        "getTexture", &AssetManager::get<sf::Texture>,
+        "createAnimation", &AssetManager::createAnimation<>,
+        "getAnimation", &AssetManager::get<Animation>);
     lua.new_usertype<ObjectManager>("ObjectManager", sol::constructors<ObjectManager()>(),
         "createDynamicGameObject", &ObjectManager::createDynamicObject<>);
     lua.new_usertype<Animation>("Animation", sol::constructors<Animation()>(),

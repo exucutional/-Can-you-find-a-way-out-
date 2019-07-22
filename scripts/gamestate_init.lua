@@ -1,42 +1,26 @@
 --gamestate_init_lua
 local objects = require "scripts/objects"
-path = {
-	texture = {
-		player = "data/texture/animationtest.png",
-		ball = "data/texture/ball.png"
-	}
-}
-local texture_player = asManager:createTexture("texture_player")
-assert(texture_player:loadFromFile(path.texture.player, IntRect.new()), "Error texture load")
-local texture_ball = asManager:createTexture("texture_ball")
-assert(texture_ball:loadFromFile(path.texture.ball, IntRect.new()), "Error texture load")
-local animation_player_down = asManager:createAnimation("animation_player_down")
-animation_player_down:setSpriteSheet(texture_player)
-animation_player_down:addFrame(IntRect.new(32, 0, 32, 32))
-animation_player_down:addFrame(IntRect.new(64, 0, 32, 32))
-animation_player_down:addFrame(IntRect.new(32, 0, 32, 32))
-animation_player_down:addFrame(IntRect.new( 0, 0, 32, 32))
-local animation_player_left = asManager:createAnimation("animation_player_left")
-animation_player_left:setSpriteSheet(texture_player)
-animation_player_left:addFrame(IntRect.new(32, 32, 32, 32))
-animation_player_left:addFrame(IntRect.new(64, 32, 32, 32))
-animation_player_left:addFrame(IntRect.new(32, 32, 32, 32))
-animation_player_left:addFrame(IntRect.new( 0, 32, 32, 32))
-local animation_player_right = asManager:createAnimation("animation_player_right")
-animation_player_right:setSpriteSheet(texture_player)
-animation_player_right:addFrame(IntRect.new(32, 64, 32, 32))
-animation_player_right:addFrame(IntRect.new(64, 64, 32, 32))
-animation_player_right:addFrame(IntRect.new(32, 64, 32, 32))
-animation_player_right:addFrame(IntRect.new( 0, 64, 32, 32))
-local animation_player_up = asManager:createAnimation("animation_player_up")
-animation_player_up:setSpriteSheet(texture_player)
-animation_player_up:addFrame(IntRect.new(32, 96, 32, 32))
-animation_player_up:addFrame(IntRect.new(64, 96, 32, 32))
-animation_player_up:addFrame(IntRect.new(32, 96, 32, 32))
-animation_player_up:addFrame(IntRect.new( 0, 96, 32, 32))
-local animation_ball = asManager:createAnimation("animation_ball")
-animation_ball:setSpriteSheet(texture_ball)
-animation_ball:addFrame(IntRect.new(0, 0, 300, 300))
+local assets = require "scripts/assets"
+for key1, val1 in pairs(textures) do
+	local texture = asManager:createTexture(textures[key1].name)
+	assert(texture:loadFromFile(textures[key1].path, IntRect.new()), "_____ERROR: Texture is no loaded")
+end
+for key1, val in pairs(animations) do
+	local animation = asManager:createAnimation(animations[key1].name)
+	local texture = asManager:getTexture(animations[key1].texture)
+	animation:setSpriteSheet(texture);
+	for key2, val2 in pairs(animations[key1].frames) do
+		animation:addFrame(IntRect.new(val2[1], val2[2], val2[3], val2[4]))
+	end
+end
+for key1, val1 in pairs(objlist) do
+	;
+end
+local animation_player_down = asManager:getAnimation("animation_player_down")
+local animation_player_left = asManager:getAnimation("animation_player_left")
+local animation_player_right = asManager:getAnimation("animation_player_right")
+local animation_player_up = asManager:getAnimation("animation_player_up")
+local animation_ball = asManager:getAnimation("animation_ball")
 local mainObj = oManager:createDynamicGameObject()
 player:setObject(mainObj)
 mainObj:addAnimation(animation_player_down, aDown)
@@ -45,9 +29,9 @@ mainObj:addAnimation(animation_player_up, aUp)
 mainObj:addAnimation(animation_player_right, aRight)
 mainObj:setPosition(0, 0)
 mainObj:setAnimation(aDown)
-mainObj:setType(objects.type.player)
+mainObj:setType(setting.type.player)
 local ball = oManager:createDynamicGameObject()
 ball:addAnimation(animation_ball, aDown)
 ball:setPosition(300, 300)
 ball:setAnimation(aDown)
-ball:setType(objects.type.ball)
+ball:setType(setting.type.ball)
