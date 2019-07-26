@@ -27,16 +27,27 @@ class Collider
 	sf::Font font;
 public:
 	Collider();
+	~Collider();
 	const sf::CircleShape& getCircle() const;
 	const sf::RectangleShape& getRect() const;
 	const sf::ConvexShape& getConvex() const;
 	void setRectPosition(float x, float y);
-	void setRectPosition (const sf::Vector2f& position);
+	void setRectPosition(const sf::Vector2f& position);
+	void setConvexPosition(float x, float y);
+	void setConvexPosition(const sf::Vector2f& vec);
+	void setRect(const sf::FloatRect& fRect);
+	void setRect(const sf::IntRect& iRect);
 	void setRectSize(const sf::Vector2f &size);
+	void setOrigin(float x, float y);
+	void setOrigin(sf::Vector2f vec);
+	void setRotation(float angle);
+	void move(float x, float y);
+	void move(const sf::Vector2f& vec);
+	void infoUpdate(float x, float y);
+	void infoUpdate(const sf::Vector2f& vec);
 	void setConvexPointCount(std::size_t count);
 	void setConvexPoint(std::size_t index, const sf::Vector2f& point);
 	const sf::Text& getInfo() const;
-	~Collider();
 };
 class Collision
 {

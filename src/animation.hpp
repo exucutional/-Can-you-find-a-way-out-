@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+#include <cassert>
 #ifndef NDEBUG
 #define __DEBUG_EXEC(code) code
 #else
@@ -39,6 +40,10 @@ class AnimationManager : public sf::Drawable, public sf::Transformable
 	bool isLooped_;
 public:
 	AnimationManager(sf::Time frameTime = sf::seconds(0.2f), bool Pause = false, bool Loop = true);
+	AnimationManager(const AnimationManager& aManager);
+	AnimationManager(AnimationManager&& aManager);
+	AnimationManager& operator=(const AnimationManager& aManager);
+	AnimationManager& operator=(AnimationManager&& aManager);
 	~AnimationManager();
 	void setAnimation(const Animation& animation);
 	const Animation* getAnimation() const;

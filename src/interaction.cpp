@@ -33,7 +33,8 @@ void InteractionManager::InteractionManager::initScripts()
     lua.new_usertype<DynamicGameObject>("DynamicGameObject", sol::constructors<DynamicGameObject()>(),
         sol::base_classes, sol::bases<GameObject>(),
         "setVelocity", &DynamicGameObject::setVelocity,
-        "getVelocity", &DynamicGameObject::getVelocity);
+        "getVelocity", &DynamicGameObject::getVelocity,
+        "deactivate", &DynamicGameObject::deactivate);
     lua.new_usertype<sf::Vector2f>("Vector2f", sol::constructors<sf::Vector2f(), sf::Vector2f(float, float)>());
     lua["Vector2f"][sol::meta_function::multiplication] = [](sf::Vector2f& vec, float num) -> sf::Vector2f {
         return sf::Vector2f(vec.x * num, vec.y * num);
@@ -44,7 +45,7 @@ void InteractionManager::InteractionManager::initScripts()
     //sol::load_result script = lua.load_file("scripts/objects.lua");
     assert(script_result.valid());
     std::size_t type_max = lua["setting"]["type_max"];
-    scriptVec = std::vector<std::vector<std::string>>(type_max, std::vector<std::string>(type_max));
+    scriptVec = std::vector<std::vector<std::string>>(type_max, std::vector<std::string>(type_max, "nope"));
     script_result = lua.script_file("scripts/interaction_init.lua");
     assert(script_result.valid());
     sol::load_result script = lua.load_file("scripts/interactions.lua");

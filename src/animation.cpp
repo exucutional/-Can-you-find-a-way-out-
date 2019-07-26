@@ -13,8 +13,8 @@ Animation::Animation(const Animation& animation)
 Animation::Animation(Animation&& animation)
 {
 	__DEBUG_EXEC(std::cout << "Animation(move)");
-	texture_ptr.swap(animation.texture_ptr);
-	Frames_.swap(animation.Frames_);
+	texture_ptr = std::move(animation.texture_ptr);
+	Frames_ = std::move(animation.Frames_);
 }
 Animation& Animation::operator=(const Animation& animation)
 {
@@ -24,8 +24,8 @@ Animation& Animation::operator=(const Animation& animation)
 }
 Animation& Animation::operator=(Animation&& animation)
 {
-	texture_ptr.swap(animation.texture_ptr);
-	Frames_.swap(animation.Frames_);
+	texture_ptr = std::move(animation.texture_ptr);
+	Frames_ = std::move(animation.Frames_);
 	return *this;
 }
 Animation::~Animation() 
@@ -54,6 +54,7 @@ std::size_t Animation::getSize() const
 }
 const sf::IntRect& Animation::getFrame(std::size_t num) const
 {
+	assert(num < Frames_.size());
 	return Frames_[num];
 }
 AnimationManager::AnimationManager(sf::Time frameTime, bool Pause, bool Loop):
@@ -64,6 +65,42 @@ AnimationManager::AnimationManager(sf::Time frameTime, bool Pause, bool Loop):
 	isLooped_(Loop)
 {
 	__DEBUG_EXEC(std::cout << "AnimationManager(sf::Time, bool, bool)\n");
+}
+AnimationManager::AnimationManager(const AnimationManager& aManager):
+	animation_(aManager.animation_),
+	frameTime_(aManager.frameTime_),
+	currentFrame_(aManager.currentFrame_),
+	isPaused_(false),
+	isLooped_(aManager.isLooped_)
+{
+	__DEBUG_EXEC(std::cout << "AnimationManager(copy)\n");
+}
+AnimationManager::AnimationManager(AnimationManager&& aManager):
+	frameTime_(aManager.frameTime_),
+	currentFrame_(aManager.currentFrame_),
+	isPaused_(false),
+	isLooped_(aManager.isLooped_)
+{
+	__DEBUG_EXEC(std::cout << "AnimationManager(move)\n");
+	animation_ = std::move(aManager.animation_);
+}
+AnimationManager& AnimationManager::operator=(const AnimationManager& aManager)
+{
+	frameTime_ = aManager.frameTime_;
+	currentFrame_ = aManager.currentFrame_;
+	isPaused_ = false;
+	isLooped_ = aManager.isLooped_;
+	animation_ = aManager.animation_;
+	return *this;
+}
+AnimationManager& AnimationManager::operator=(AnimationManager&& aManager)
+{
+	frameTime_ = aManager.frameTime_;
+	currentFrame_ = aManager.currentFrame_;
+	isPaused_ = false;
+	isLooped_ = aManager.isLooped_;
+	animation_ = std::move(aManager.animation_);
+	return *this;
 }
 AnimationManager::~AnimationManager()
 {

@@ -1,10 +1,14 @@
 #include "state.hpp"
+static const float SPEED_RATE = 200;
 GameState::GameState(sf::RenderWindow& window_, AssetManager& asManager_):
-State(window_, asManager_)
+    State(window_, asManager_),
+    player(oManager)
 {
+    __DEBUG_EXEC(std::cout << "GameState(sf::RenderWindow&, AssetManager&)\n");
 	nextStateIndex = GAME_STATE;
 	isPaused = false;
-	__DEBUG_EXEC(std::cout << "GameState(sf::RenderWindow&, AssetManager&)\n");
+    view.setSize(1920, 1080);
+    window.setView(view);
 	init();
 }
 GameState::~GameState()
@@ -21,7 +25,11 @@ void GameState::init()
         "createAnimation", &AssetManager::createAnimation<>,
         "getAnimation", &AssetManager::get<Animation>);
     lua.new_usertype<ObjectManager>("ObjectManager", sol::constructors<ObjectManager()>(),
-        "createDynamicGameObject", &ObjectManager::createDynamicObject<>);
+        "createDynamicObject", &ObjectManager::createDynamicObject<>,
+        "newDynamicObjectType", &ObjectManager::newDynamicObjectType<>,
+        "newDynamicObject", &ObjectManager::newDynamicObject,
+        "addDynamicObject", &ObjectManager::addDynamicObject,
+        "findDynamicObject", &ObjectManager::findDynamicObject);
     lua.new_usertype<Animation>("Animation", sol::constructors<Animation()>(),
         "setSpriteSheet", sol::resolve<void(std::shared_ptr<sf::Texture>)>(&Animation::setSpriteSheet),
         "addFrame", &Animation::addFrame);
@@ -33,13 +41,15 @@ void GameState::init()
         "addAnimation", &GameObject::addAnimation,
         "setAnimation", &GameObject::setAnimation,
         "getAnimation", &GameObject::getAnimation,
+        "setRotation", &GameObject::setRotation,
+        "setOrigin", sol::resolve<void(float, float)>(&GameObject::setOrigin),
         "setType", &GameObject::setType,
         "setPosition", sol::overload(
             sol::resolve<void(float, float)>(&GameObject::setPosition),
             sol::resolve<void(const sf::Vector2f&)>(&GameObject::setPosition)));
     lua.new_usertype<DynamicGameObject>("DynamicGameObject", sol::constructors<DynamicGameObject()>(),
         sol::base_classes, sol::bases<GameObject>());
-    lua.new_usertype<Player>("Player", sol::constructors<Player()>(),
+    lua.new_usertype<Player>("Player", sol::constructors<Player(ObjectManager&)>(),
         "setObject", sol::resolve<void(std::shared_ptr<DynamicGameObject>)>(&Player::setObject));
     lua["asManager"] = std::ref(asManager); 
     lua["oManager"] = std::ref(oManager);
@@ -60,12 +70,39 @@ void GameState::resume()
 }
 void GameState::processInput()
 {
-	player.control();
+	//player.control();
+    auto obj_ptr = player.getObject();
+    assert(obj_ptr);
+	std::size_t aNum = obj_ptr->getCurrentAnimationNum();
+	sf::Vector2f velocity = obj_ptr->getVelocity();
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+		aNum = aDown;
+		velocity.y = SPEED_RATE;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+		aNum = aUp;
+		velocity.y = -SPEED_RATE;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+		aNum = aLeft;
+		velocity.x = -SPEED_RATE;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+		aNum = aRight;
+		velocity.x = SPEED_RATE;
+	}
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+        player.shoot(window);
+    }
+	obj_ptr->setVelocity(velocity);
+	obj_ptr->playAnimation(aNum);
 }
 void GameState::update()
 {
     oManager.update();
     oManager.interact();
+    view.setCenter(player.getPosition());
+    window.setView(view);
 }
 void GameState::render(sf::RenderTarget& target, sf::Time frameTime)
 {
@@ -93,7 +130,9 @@ int GameState::gameLoop()
             case sf::Event::Closed:
                 window.close();
                 return CLOSED_STATE;
-                break;
+            case sf::Event::KeyPressed:
+                if(sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+                return CLOSED_STATE;
             default:
                 break;
             }

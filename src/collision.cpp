@@ -1,30 +1,7 @@
 #include "collision.hpp"
-static const float NORMAL_TOLERANCE = 0.0001f;
+#include "vector_func.hpp"
 static const std::size_t CHARACTER_SIZE = 10;
 static const std::size_t OUTLINE_THICKNESS = 1;
-static inline float sqr(float val)
-{
-	return val * val;
-}
-static inline float getLength(const sf::Vector2f& vector)
-{
-	return sqrt(sqr(vector.x) + sqr(vector.y));
-}
-static inline float dotProduct(const sf::Vector2f& v1, const sf::Vector2f& v2)
-{
-	return v1.x * v2.x + v1.y * v2.y;
-}
-static inline sf::Vector2f getNormal(const sf::Vector2f& vector)
-{
-	return sf::Vector2f(-vector.y, vector.x);
-}
-static inline sf::Vector2f getNormalized(const sf::Vector2f& vector)
-{
-	float length = getLength(vector);
-	if (length < NORMAL_TOLERANCE)
-		return sf::Vector2f();
-	return sf::Vector2f(vector.x / length, vector.y / length);
-}
 static inline sf::Vector2f getPerpendicularAxis(const sf::Vector2f& vertex1, const sf::Vector2f& vertex2)
 {
 	return getNormal(getNormalized(vertex2 - vertex1));
@@ -38,12 +15,6 @@ static inline float getOverlapLength(const sf::Vector2f& v1, const sf::Vector2f&
 	if (!areOverlapping(v1, v2))
 		return 0.f;
 	return std::min(v1.y, v2.y) - std::max(v1.x, v2.x);
-}
-static inline sf::Vector2f getGlobalCenter(const sf::Shape& shape)
-{
-	const sf::Transform& transform = shape.getTransform();
-	sf::FloatRect local = shape.getGlobalBounds();
-	return transform.transformPoint(local.left + local.width / 2.f, local.top + local.height / 2.f);
 }
 static sf::Vector2f projectOnAxis(const std::vector<sf::Vector2f>& vertices, const sf::Vector2f& axis)
 {
@@ -69,29 +40,32 @@ static std::vector<sf::Vector2f> getVertices(const sf::ConvexShape& convex)
 	}
 	return vertices;
 }
-static std::vector<sf::Vector2f> getPerpendicularAxes(const sf::ConvexShape& convex1, const sf::ConvexShape& convex2)
+static std::vector<sf::Vector2f> getPerpendicularAxes(const std::vector<sf::Vector2f>& vertex1, const std::vector<sf::Vector2f>& vertex2)
 {
 	std::vector<sf::Vector2f> axes;
-	auto pointCount1 = convex1.getPointCount();
+	auto pointCount1 = vertex1.size();
 	assert(pointCount1 >= 3);
-	auto pointCount2 = convex2.getPointCount();
+	auto pointCount2 = vertex2.size();
 	assert(pointCount2 >= 3);
 	for (std::size_t i = 1; i < pointCount1; i++) {
-		axes.push_back(getPerpendicularAxis(convex1.getPoint(i), convex1.getPoint(i - 1)));
+		axes.push_back(getPerpendicularAxis(vertex1[i], vertex1[i - 1]));
 	}
-	axes.push_back(getPerpendicularAxis(convex1.getPoint(0), convex1.getPoint(pointCount1 - 1)));
+	axes.push_back(getPerpendicularAxis(vertex1[0],vertex1[pointCount1 - 1]));
 	for (std::size_t i = 1; i < pointCount2; i++) {
-		axes.push_back(getPerpendicularAxis(convex2.getPoint(i), convex2.getPoint(i - 1)));
+		axes.push_back(getPerpendicularAxis(vertex2[i], vertex2[i - 1]));
 	}
-	axes.push_back(getPerpendicularAxis(convex2.getPoint(0), convex2.getPoint(pointCount2 - 1)));
+	axes.push_back(getPerpendicularAxis(vertex2[0], vertex2[pointCount2 - 1]));
 	return axes;
 }
 Collider::Collider()
 {
 	__DEBUG_EXEC(std::cout << "Collider()\n");
 	rectangle.setFillColor(sf::Color::Transparent);
+	convex.setFillColor(sf::Color::Transparent);
 	rectangle.setOutlineThickness(OUTLINE_THICKNESS);
+	convex.setOutlineThickness(OUTLINE_THICKNESS);
 	rectangle.setOutlineColor(sf::Color::White);
+	convex.setOutlineColor(sf::Color::White);
 	LuaScript script("data/setting.lua");
 	std::string fontPath = script.get<std::string>("FontPath");
 	font.loadFromFile(fontPath);
@@ -120,23 +94,31 @@ const sf::Text& Collider::getInfo() const
 {
 	return info;
 }
-void Collider::setRectPosition(float x, float y)
+void Collider::infoUpdate(float x, float y)
 {
-	rectangle.setPosition(x, y);
 	info.setPosition(x, y - 2 * (2 * info.getLineSpacing() + info.getCharacterSize()));
 	std::stringstream ss;
 	ss << "X:" << x << "\nY:" << y;
 	std::string infostr = ss.str();
 	info.setString(infostr);
 }
+void Collider::infoUpdate(const sf::Vector2f& vec)
+{
+	info.setPosition(vec.x, vec.y - 2 * (2 * info.getLineSpacing() + info.getCharacterSize()));
+	std::stringstream ss;
+	ss << "X:" << vec.x << "\nY:" << vec.y;
+	std::string infostr = ss.str();
+	info.setString(infostr);
+}
+void Collider::setRectPosition(float x, float y)
+{
+	rectangle.setPosition(x, y);
+	infoUpdate(x, y);
+}
 void Collider::setRectPosition(const sf::Vector2f& position)
 {
 	rectangle.setPosition(position);
-	info.setPosition(position.x, position.y - 2 * (2 * info.getLineSpacing() + info.getCharacterSize()));
-	std::stringstream ss;
-	ss << "X:" << position.x << "\nY:" << position.y;
-	std::string infostr = ss.str();
-	info.setString(infostr);
+	infoUpdate(position);
 }
 void Collider::setRectSize(const sf::Vector2f& size)
 {
@@ -149,6 +131,66 @@ void Collider::setConvexPointCount(std::size_t count)
 void Collider::setConvexPoint(std::size_t index, const sf::Vector2f& point)
 {
 	convex.setPoint(index, point);
+}
+void Collider::setOrigin(float x, float y)
+{
+	rectangle.setOrigin(x, y);
+	convex.setOrigin(x, y);
+	info.setOrigin(x, y);
+}
+void Collider::setOrigin(sf::Vector2f vec)
+{
+	rectangle.setOrigin(vec);
+	convex.setOrigin(vec);
+	info.setOrigin(vec);
+}
+void Collider::setRotation(float angle)
+{
+	rectangle.setRotation(angle);
+	convex.setRotation(angle);
+	info.setRotation(angle);
+}
+void Collider::move(float x, float y)
+{
+	rectangle.move(x, y);
+	convex.move(x, y);
+	info.move(x, y);
+	infoUpdate(rectangle.getPosition());
+	circle.move(x, y);
+}
+void Collider::move(const sf::Vector2f& vec)
+{
+	rectangle.move(vec);
+	convex.move(vec);
+	info.move(vec);
+	infoUpdate(rectangle.getPosition());
+	circle.move(vec);
+}
+void Collider::setConvexPosition(float x, float y)
+{
+	convex.setPosition(x, y);
+}
+void Collider::setConvexPosition(const sf::Vector2f& vec)
+{
+	convex.setPosition(vec);
+}
+void Collider::setRect(const sf::FloatRect& fRect)
+{
+	sf::Vector2f size(fRect.width, fRect.height);
+	setRectSize(size);
+	setConvexPoint(0, sf::Vector2f(0, 0));
+	setConvexPoint(1, sf::Vector2f(0 + fRect.width, 0));
+	setConvexPoint(2, sf::Vector2f(0 + fRect.width, 0 + fRect.height));
+	setConvexPoint(3, sf::Vector2f(0, 0 + fRect.height));
+}
+void Collider::setRect(const sf::IntRect& iRect)
+{
+	sf::Vector2f size(iRect.width, iRect.height);
+	setRectSize(size);
+	setConvexPoint(0, sf::Vector2f(0, 0));
+	setConvexPoint(1, sf::Vector2f(0 + iRect.width, 0));
+	setConvexPoint(2, sf::Vector2f(0 + iRect.width, 0 + iRect.height));
+	setConvexPoint(3, sf::Vector2f(0, 0 + iRect.height));
 }
 Collision::Collision()
 {
@@ -181,7 +223,7 @@ bool Collision::intersect(const sf::ConvexShape& convex1, const sf::ConvexShape&
 {
 	std::vector<sf::Vector2f> vertices1 = getVertices(convex1);
 	std::vector<sf::Vector2f> vertices2 = getVertices(convex2);
-	std::vector<sf::Vector2f> axes = getPerpendicularAxes(convex1, convex2);
+	std::vector<sf::Vector2f> axes = getPerpendicularAxes(vertices1, vertices2);
 	float minOverlap = std::numeric_limits<float>::infinity();
 	for (auto& axis : axes) {
 		sf::Vector2f proj1 = projectOnAxis(vertices1, axis);
@@ -215,7 +257,7 @@ bool Collision::isCollide(const Collider& collider1, const Collider& collider2, 
 	case CONVEX_MODE:
 		return intersect(collider1.getConvex(), collider2.getConvex(), mtv_ptr);
 	default:
-		std::cerr << "__________ERROR: Unknown colliderMode " << collideMode << std::endl;
+		std::cerr << "_____ERROR: Unknown colliderMode " << collideMode << std::endl;
 		return false;
 	}
 }

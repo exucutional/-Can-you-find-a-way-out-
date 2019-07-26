@@ -9,6 +9,7 @@
 #include "objectmanager.hpp"
 #include "assetmanager.hpp"
 #include "assert.hpp"
+#include "player.hpp"
 #include "sol/sol.hpp"
 extern const sf::Time deltaTime;
 
@@ -29,6 +30,7 @@ class State
 protected:
 	ObjectManager oManager;
 	sf::RenderWindow& window;
+	sf::View view;
 	AssetManager& asManager;
 	int nextStateIndex;
 	bool isPaused;

@@ -44,6 +44,58 @@ ObjectManager::~ObjectManager()
 {
     __DEBUG_EXEC(std::cout << "~ObjectManager()\n");
 }
+std::shared_ptr<DynamicGameObject> ObjectManager::newDynamicObject(std::size_t type)
+{
+    for (auto& obj: dynObjVec) {
+        if (obj->getType() == type && !obj->isActive()) {
+            obj->activate();
+            return obj;
+        }
+    }
+    for (auto& obj: typeObjVec) {
+        if (obj->getType() == type) {
+            auto obj_ptr =  std::make_shared<DynamicGameObject>(static_cast<DynamicGameObject&>(*obj));
+            dynObjVec.push_back(obj_ptr);
+            return obj_ptr;
+        }
+    }
+    std::cerr << "_____ERROR: Dynamic object type " << type << " is uninitialized\n";
+    return nullptr;
+}
+std::shared_ptr<StaticGameObject> ObjectManager::newStaticObject(std::size_t type)
+{
+    for (auto& obj: stObjVec) {
+        if (obj->getType() == type && !obj->isActive()) {
+            obj->activate();
+            return obj;
+        }
+    }
+    for (auto& obj: typeObjVec) {
+        if (obj->getType() == type) {
+            auto obj_ptr =  std::make_shared<StaticGameObject>(static_cast<StaticGameObject&>(*obj));
+            stObjVec.push_back(obj_ptr);
+            return obj_ptr;
+        }
+    }
+    std::cerr << "_____ERROR: Static object type " << type << " is uninitialized\n";
+    return nullptr;
+}
+std::shared_ptr<DynamicGameObject> ObjectManager::findDynamicObject(std::size_t type) 
+{
+    for (auto& obj: dynObjVec) {
+        if (obj->getType() == type && obj->isActive())
+            return obj;
+    }
+    return nullptr;
+}
+std::shared_ptr<StaticGameObject> ObjectManager::findStaticObject(std::size_t type) 
+{
+    for (auto& obj: stObjVec) {
+        if (obj->getType() == type && obj->isActive())
+            return obj;
+    }
+    return nullptr;
+}
 void ObjectManager::addDynamicObject(std::shared_ptr<DynamicGameObject> obj_ptr)
 {
     assert(obj_ptr);
@@ -77,11 +129,11 @@ const std::size_t ObjectManager::getStSize() const
 void ObjectManager::render(sf::RenderTarget& target, sf::Time frameTime)
 {
     for (auto& obj: dynObjVec) {
-        if (obj)
+        if (obj && obj->isActive())
             obj->render(target, frameTime);
     }
     for (auto& obj: stObjVec) {
-        if (obj)
+        if (obj && obj->isActive())
             obj->render(target, frameTime);
     }
 }
@@ -91,9 +143,11 @@ void ObjectManager::interact()
     sf::Vector2f mtv;
     sf::Vector2f* mtv_ptr = &mtv;
     for (std::size_t i = 0; i < size - 1; i++) {
-        for (std::size_t j = i; j < size - 1; j++) {
-            if (collision.isCollide(dynObjVec[j]->getCollider(), dynObjVec[j + 1]->getCollider(), CONVEX_MODE, mtv_ptr)) {
-                intManager.interact(*dynObjVec[j], *dynObjVec[j + 1], mtv);
+        for (std::size_t j = i + 1; j < size; j++) {
+            if (dynObjVec[i]->isActive() && dynObjVec[j]->isActive())
+                if (collision.isCollide(dynObjVec[i]->getCollider(), dynObjVec[j]->getCollider(), CONVEX_MODE, mtv_ptr)) {
+                    intManager.interact(*dynObjVec[i], *dynObjVec[j], mtv);
+                    intManager.interact(*dynObjVec[j], *dynObjVec[i], -mtv);
             }
         }
     }
@@ -101,7 +155,7 @@ void ObjectManager::interact()
 void ObjectManager::update()
 {
     for (auto& obj: dynObjVec) {
-        if (obj)
+        if (obj && obj->isActive())
             obj->update();
     }
 }
@@ -113,8 +167,12 @@ sManager(window, asManager)
     LuaScript script("data/setting.lua");
     int width = script.get<int>("Window.Screen_resolution.width");
     int height = script.get<int>("Window.Screen_resolution.height");
+    bool fullScreen = script.get<bool>("Window.FullScreen");
     sf::Vector2i screenDimensions(width, height);
-    window.create(sf::VideoMode(screenDimensions.x, screenDimensions.y), "animation test");
+    if (fullScreen)
+        window.create(sf::VideoMode(screenDimensions.x, screenDimensions.y), "view test", sf::Style::Fullscreen);
+    else
+        window.create(sf::VideoMode(screenDimensions.x, screenDimensions.y), "view test");
     window.setFramerateLimit(144);
 }
 App::~App()
