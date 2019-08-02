@@ -4,7 +4,7 @@
 MenuState::MenuState(sf::RenderWindow& window_, AssetManager& asManager_):
 State(window_, asManager_)
 {
-	nextStateIndex = GAME_STATE;
+	nextStateIndex = STATE::GAME;
 	isPaused = false;
 	__DEBUG_EXEC(std::cout << "MenuState(sf::RenderWindow&, AssetManager&)\n");
 }

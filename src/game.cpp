@@ -13,7 +13,7 @@ StateManager::StateManager(sf::RenderWindow& window, AssetManager& asManager)
     __DEBUG_EXEC(std::cout << "StateManager(sf::RenderWindow&, AssetManager&)\n");
     statVec.push_back(std::move(std::unique_ptr<MenuState>(new MenuState(window, asManager))));
     statVec.push_back(std::move(std::unique_ptr<GameState>(new GameState(window, asManager))));
-    currentStateIndex = MENU_STATE;
+    currentStateIndex = STATE::MENU;
 }
 StateManager::~StateManager()
 {
@@ -32,13 +32,58 @@ int StateManager::setState(std::size_t index)
         state_ptr->resume();
         return state_ptr->gameLoop();
     }
-    currentStateIndex = CLOSED_STATE;
+    currentStateIndex = STATE::CLOSED;
     fprintf(stderr, "State do not exist\n");
-    return CLOSED_STATE;
+    return STATE::CLOSED;
 }
 ObjectManager::ObjectManager()
 {
     __DEBUG_EXEC(std::cout << "ObjectManager()\n");
+    init();
+}
+void ObjectManager::addScript(const std::string& name, std::size_t index1, std::size_t index2)
+{
+    assert(index2 < scriptVec.size());
+    assert(index1 < scriptVec[index2].size());
+    scriptVec[index1][index2] = name;
+}
+void ObjectManager::init()
+{
+    lua.open_libraries(sol::lib::base, sol::lib::package);
+    lua.new_usertype<ObjectManager>("ObjectManager", sol::constructors<ObjectManager()>(),
+        "addScript", &ObjectManager::addScript);
+    lua["oManager"] = std::ref(*this);
+    lua.new_usertype<GameObject>("GameObject", sol::constructors<GameObject()>(),
+        "playAnimation", &GameObject::playAnimation,
+        "getCurrentAnimationNum", &GameObject::getCurrentAnimationNum,
+        "scale", &GameObject::scale,
+        "setPosition", sol::overload(
+            sol::resolve<void(float, float)>(&GameObject::setPosition),
+            sol::resolve<void(const sf::Vector2f&)>(&GameObject::setPosition)),
+        "move", &GameObject::move,
+        "mirrorFlip", &GameObject::mirrorFlip,
+        "mirrorUnFlip", &GameObject::mirrorUnFlip);
+    lua.new_usertype<DynamicGameObject>("DynamicGameObject", sol::constructors<DynamicGameObject()>(),
+        sol::base_classes, sol::bases<GameObject>(),
+        "getVelocity", &DynamicGameObject::getVelocity,
+        "setVelocity", sol::resolve<void(float, float)>(&DynamicGameObject::setVelocity),
+        "deactivate", &DynamicGameObject::deactivate);
+    lua.new_usertype<sf::Vector2f>("Vector2f", sol::constructors<sf::Vector2f(), sf::Vector2f(float, float)>(),
+        "x", &sf::Vector2f::x,
+        "y", &sf::Vector2f::y);
+    lua["Vector2f"][sol::meta_function::multiplication] = [](sf::Vector2f& vec, float num) -> sf::Vector2f {
+        return sf::Vector2f(vec.x * num, vec.y * num);
+    };
+    sol::protected_function_result script_result = lua.script_file("scripts/objects.lua");
+    std::size_t type_max = lua["setting"]["type_max"];
+    std::size_t action_type_max = lua["setting"]["action_type_max"];
+    scriptVec = std::vector<std::vector<std::string>>(type_max, std::vector<std::string>(action_type_max, "nope"));
+    script_result = lua.script_file("scripts/action_init.lua");
+    assert(script_result.valid());
+    sol::load_result script = lua.load_file("scripts/actions.lua");
+    assert(script.valid());
+    sol::protected_function target = script;
+    bcode = target.dump();
 }
 ObjectManager::~ObjectManager() 
 {
@@ -74,6 +119,18 @@ std::shared_ptr<StaticGameObject> ObjectManager::newStaticObject(std::size_t typ
         if (obj->getType() == type) {
             auto obj_ptr =  std::make_shared<StaticGameObject>(static_cast<StaticGameObject&>(*obj));
             stObjVec.push_back(obj_ptr);
+            return obj_ptr;
+        }
+    }
+    std::cerr << "_____ERROR: Static object type " << type << " is uninitialized\n";
+    return nullptr;
+}
+std::shared_ptr<SpriteObject> ObjectManager::newSpriteObject(std::size_t type)
+{
+    for (auto& obj: spriteObjVecType) {
+        if (obj->getType() == type) {
+            auto obj_ptr =  std::make_shared<SpriteObject>(*obj);
+            spriteObjVec.push_back(obj_ptr);
             return obj_ptr;
         }
     }
@@ -126,29 +183,57 @@ const std::size_t ObjectManager::getStSize() const
 {
     return stObjVec.size();
 }
-void ObjectManager::render(sf::RenderTarget& target, sf::Time frameTime)
+void ObjectManager::render(sf::RenderTarget& target, sf::Time frameTime, sf::View view)
 {
+    auto viewPos = view.getCenter();
+    auto viewSize = view.getSize();
+    for (auto& obj: spriteObjVec) {
+        auto spritePos = obj->sprite.getPosition();
+        bool inRange = abs(spritePos.x - viewPos.x) < viewSize.x &&
+            abs(spritePos.y - viewPos.y) < viewSize.y;
+        if (obj && inRange)
+            target.draw(obj->sprite);
+    }
     for (auto& obj: dynObjVec) {
-        if (obj && obj->isActive())
+        auto objPos = obj->getPosition();
+        bool inRange = abs(objPos.x - viewPos.x) < viewSize.x &&
+            abs(objPos.y - viewPos.y) < viewSize.y;
+        if (obj && obj->isActive() && inRange)
             obj->render(target, frameTime);
     }
     for (auto& obj: stObjVec) {
-        if (obj && obj->isActive())
+        auto objPos = obj->getPosition();
+        bool inRange = abs(objPos.x - viewPos.x) < viewSize.x &&
+            abs(objPos.y - viewPos.y) < viewSize.y;
+        if (obj && obj->isActive() && inRange)
             obj->render(target, frameTime);
     }
 }
 void ObjectManager::interact()
 {
-    auto size = dynObjVec.size();
+    auto dynsize = dynObjVec.size();
     sf::Vector2f mtv;
     sf::Vector2f* mtv_ptr = &mtv;
-    for (std::size_t i = 0; i < size - 1; i++) {
-        for (std::size_t j = i + 1; j < size; j++) {
+    for (std::size_t i = 0; i < dynsize - 1; i++) {
+        for (std::size_t j = i + 1; j < dynsize; j++) {
             if (dynObjVec[i]->isActive() && dynObjVec[j]->isActive())
                 if (collision.isCollide(dynObjVec[i]->getCollider(), dynObjVec[j]->getCollider(), CONVEX_MODE, mtv_ptr)) {
                     intManager.interact(*dynObjVec[i], *dynObjVec[j], mtv);
                     intManager.interact(*dynObjVec[j], *dynObjVec[i], -mtv);
             }
+        }
+    }
+    auto stsize = stObjVec.size();
+    for (std::size_t i = 0; i < stsize; i++) {
+        auto pos1 = stObjVec[i]->getPosition();
+        for (std::size_t j = 0; j < dynsize; j++) {
+            auto pos2 = dynObjVec[j]->getPosition();
+            bool inRange = abs(pos1.x - pos2.x) < 1000 && abs(pos1.y - pos2.y) < 1000;
+            if (dynObjVec[j]->isActive() && stObjVec[i]->isActive() && inRange)
+                if (collision.isCollide(dynObjVec[j]->getCollider(), stObjVec[i]->getCollider(), CONVEX_MODE, mtv_ptr)) {
+                    intManager.interact(*dynObjVec[j], *stObjVec[i], mtv);
+                    intManager.interact(*stObjVec[i], *dynObjVec[j], mtv);
+                }
         }
     }
 }
@@ -158,6 +243,15 @@ void ObjectManager::update()
         if (obj && obj->isActive())
             obj->update();
     }
+}
+void ObjectManager::action(DynamicGameObject& object, std::size_t actionType)
+{
+    auto obj_type = object.getType();
+    assert(obj_type < scriptVec.size());
+    assert(actionType < scriptVec[obj_type].size());
+    auto script = lua.safe_script(bcode.as_string_view(), sol::script_pass_on_error);
+    assert(script.valid());
+    lua[scriptVec[obj_type][actionType]](object.getRef());
 }
 App::App() 
 :asManager(),
@@ -181,7 +275,7 @@ App::~App()
 }
 int App::run()
 {   
-    int nextStateIndex = GAME_STATE;
-    while ((nextStateIndex = sManager.setState(nextStateIndex)) != CLOSED_STATE);
+    int nextStateIndex = STATE::GAME;
+    while ((nextStateIndex = sManager.setState(nextStateIndex)) != STATE::CLOSED);
     return EXIT_SUCCESS;
 }

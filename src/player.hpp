@@ -16,7 +16,6 @@ public:
 	void setObject(std::shared_ptr<DynamicGameObject> obj_ptr);
 	sf::Vector2f getPosition() const;
 	std::shared_ptr<DynamicGameObject> getObject();
-	void control();
 	void shoot(sf::RenderWindow& window);
 };
 #endif //PLAYER_HPP_

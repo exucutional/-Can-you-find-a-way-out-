@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <cassert>
+#define NDEBUG
 #ifndef NDEBUG
 #define __DEBUG_EXEC(code) code
 #else

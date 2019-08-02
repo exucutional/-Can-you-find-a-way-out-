@@ -32,7 +32,9 @@ void InteractionManager::InteractionManager::initScripts()
         "move", &GameObject::move);
     lua.new_usertype<DynamicGameObject>("DynamicGameObject", sol::constructors<DynamicGameObject()>(),
         sol::base_classes, sol::bases<GameObject>(),
-        "setVelocity", &DynamicGameObject::setVelocity,
+        "setVelocity", sol::overload(
+            sol::resolve<void(float, float)>(&DynamicGameObject::setVelocity),
+            sol::resolve<void(const sf::Vector2f&)>(&DynamicGameObject::setVelocity)),
         "getVelocity", &DynamicGameObject::getVelocity,
         "deactivate", &DynamicGameObject::deactivate);
     lua.new_usertype<sf::Vector2f>("Vector2f", sol::constructors<sf::Vector2f(), sf::Vector2f(float, float)>());

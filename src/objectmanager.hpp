@@ -9,31 +9,38 @@ class ObjectManager
 {
 	Collision collision;
 	InteractionManager intManager;
+	sol::state lua;
+	sol::bytecode bcode;
+	std::vector<std::vector<std::string>> scriptVec;
 	std::vector<std::shared_ptr<GameObject>> typeObjVec;
 	std::vector<std::shared_ptr<StaticGameObject>> stObjVec;
 	std::vector<std::shared_ptr<DynamicGameObject>> dynObjVec;
+	std::vector<std::shared_ptr<SpriteObject>> spriteObjVecType;
+	std::vector<std::shared_ptr<SpriteObject>> spriteObjVec;
 public:
 	ObjectManager();
+	void init();
 	~ObjectManager();
 	std::shared_ptr<DynamicGameObject> newDynamicObject(std::size_t type);
 	std::shared_ptr<StaticGameObject> newStaticObject(std::size_t type);
+	std::shared_ptr<SpriteObject> newSpriteObject(std::size_t type);
 	std::shared_ptr<DynamicGameObject> findDynamicObject(std::size_t type);
 	std::shared_ptr<StaticGameObject> findStaticObject(std::size_t type);
-	template<typename... Args>
-	std::shared_ptr<DynamicGameObject> newDynamicObjectType(std::size_t type, Args... args) {
-		auto obj_ptr = std::make_shared<DynamicGameObject>(args...);
+	template<typename T, typename... Args>
+	std::shared_ptr<T> newObjectType(std::size_t type, Args... args) {
+		auto obj_ptr = std::make_shared<T>(args...);
 		obj_ptr->setType(type);
 		assert(obj_ptr);
 		typeObjVec.push_back(obj_ptr);
 		return obj_ptr;
-	} 
+	}
 	template<typename... Args>
-	std::shared_ptr<StaticGameObject> newStaticObjectType(std::size_t type, Args... args) {
-		auto obj_ptr = std::make_shared<DynamicGameObject>(args...);
-		obj_ptr->setType(type);
-		assert(obj_ptr);
-		typeObjVec.push_back(obj_ptr);
-		return obj_ptr;
+	std::shared_ptr<SpriteObject> newSpriteObjectType(std::size_t type, Args... args) {
+		auto sprite_ptr = std::make_shared<SpriteObject>(args...);
+		sprite_ptr->setType(type);
+		assert(sprite_ptr);
+		spriteObjVecType.push_back(sprite_ptr);
+		return sprite_ptr;
 	}
 	template<typename... Args>
 	std::shared_ptr<StaticGameObject> createStaticObject(Args... args) {
@@ -55,7 +62,9 @@ public:
 	std::shared_ptr<StaticGameObject> getStObject(std::size_t num) const;
 	const std::size_t getDynSize() const;
 	const std::size_t getStSize() const;
-	void render(sf::RenderTarget& target, sf::Time frameTime);
+	void render(sf::RenderTarget& target, sf::Time frameTime, sf::View view);
+	void action(DynamicGameObject& object, std::size_t actionType);
+	void addScript(const std::string& name, std::size_t index1, std::size_t index2);
 	void update();
 	void interact();
 };

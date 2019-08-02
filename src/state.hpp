@@ -10,6 +10,7 @@
 #include "assetmanager.hpp"
 #include "assert.hpp"
 #include "player.hpp"
+#include "map.hpp"
 #include "sol/sol.hpp"
 extern const sf::Time deltaTime;
 
@@ -21,9 +22,17 @@ extern const sf::Time deltaTime;
 
 enum STATE
 {
-	CLOSED_STATE = -1,
-	MENU_STATE = 0,
-	GAME_STATE = 1,
+	CLOSED = -1,
+	MENU = 0,
+	GAME = 1,
+};
+enum ActionType
+{
+	MoveDown = 0,
+	MoveLeft,
+	MoveUp,
+	MoveRight,
+	Attack
 };
 class State
 {
@@ -31,6 +40,7 @@ protected:
 	ObjectManager oManager;
 	sf::RenderWindow& window;
 	sf::View view;
+	sf::View minimap;
 	AssetManager& asManager;
 	int nextStateIndex;
 	bool isPaused;
@@ -64,6 +74,7 @@ public:
 class GameState : public State
 {
 	Player player;
+	Map map;
 public:
 	GameState(sf::RenderWindow& window_, AssetManager& asManager_);
 	~GameState();

@@ -4,6 +4,7 @@
 #include <vector>
 #include "sol/sol.hpp"
 #include "gameobjects.hpp"
+#define NDEBUG
 #ifndef NDEBUG
 #define __DEBUG_EXEC(code) code
 #else

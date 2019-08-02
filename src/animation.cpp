@@ -73,6 +73,7 @@ AnimationManager::AnimationManager(const AnimationManager& aManager):
 	isPaused_(false),
 	isLooped_(aManager.isLooped_)
 {
+	setScale(aManager.getScale());
 	__DEBUG_EXEC(std::cout << "AnimationManager(copy)\n");
 }
 AnimationManager::AnimationManager(AnimationManager&& aManager):
@@ -82,6 +83,7 @@ AnimationManager::AnimationManager(AnimationManager&& aManager):
 	isLooped_(aManager.isLooped_)
 {
 	__DEBUG_EXEC(std::cout << "AnimationManager(move)\n");
+	setScale(aManager.getScale());
 	animation_ = std::move(aManager.animation_);
 }
 AnimationManager& AnimationManager::operator=(const AnimationManager& aManager)
@@ -91,6 +93,7 @@ AnimationManager& AnimationManager::operator=(const AnimationManager& aManager)
 	isPaused_ = false;
 	isLooped_ = aManager.isLooped_;
 	animation_ = aManager.animation_;
+	setScale(aManager.getScale());
 	return *this;
 }
 AnimationManager& AnimationManager::operator=(AnimationManager&& aManager)
@@ -100,6 +103,7 @@ AnimationManager& AnimationManager::operator=(AnimationManager&& aManager)
 	isPaused_ = false;
 	isLooped_ = aManager.isLooped_;
 	animation_ = std::move(aManager.animation_);
+	setScale(aManager.getScale());
 	return *this;
 }
 AnimationManager::~AnimationManager()

@@ -21,33 +21,6 @@ void Player::setObject(std::shared_ptr<DynamicGameObject> obj_ptr_)
 	assert(obj_ptr_);
 	obj_ptr = obj_ptr_;
 }
-void Player::control()
-{
-	assert(obj_ptr);
-	std::size_t aNum = obj_ptr->getCurrentAnimationNum();
-	sf::Vector2f velocity = obj_ptr->getVelocity();
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-		aNum = aDown;
-		velocity.y = SPEED_RATE;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-		aNum = aUp;
-		velocity.y = -SPEED_RATE;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-		aNum = aLeft;
-		velocity.x = -SPEED_RATE;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-		aNum = aRight;
-		velocity.x = SPEED_RATE;
-	}
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-        //shoot();
-    }
-	obj_ptr->setVelocity(velocity);
-	obj_ptr->playAnimation(aNum);
-}
 std::shared_ptr<DynamicGameObject> Player::getObject()
 {
 	return obj_ptr;

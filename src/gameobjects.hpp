@@ -7,23 +7,39 @@
 #include "collision.hpp"
 #include "interaction.hpp"
 extern const sf::Time deltaTime;
+#define NDEBUG
 #ifndef NDEBUG
 #define __DEBUG_EXEC(code) code
 #else
 #define __DEBUG_EXEC(code) ;
 #endif
 enum AnimationType {
-	aDown = 0,
-	aLeft,
-	aUp,
-	aRight,
+	idle = 0,
+	walk,
+	attack,
 	AnimationTypeSize
+};
+class SpriteObject
+{
+	std::size_t type;
+public:
+	sf::Sprite sprite;
+	SpriteObject();
+	SpriteObject(const SpriteObject& obj);
+	SpriteObject(SpriteObject&& obj);
+	SpriteObject& operator=(const SpriteObject& obj);
+	SpriteObject& operator=(SpriteObject&& obj);
+	~SpriteObject();
+	std::size_t getType();
+	void setType(std::size_t type);
+	void setTexture(std::shared_ptr<sf::Texture> texture_ptr);
 };
 class GameObject
 {
 	std::size_t type;
 	std::size_t currentAnimationNum;
 	bool isActive_;
+	bool debugMode;
 protected:
 	std::vector<std::shared_ptr<const Animation>> animationVec = std::vector<std::shared_ptr<const Animation>>(AnimationTypeSize);
 	Collider collider;
@@ -45,8 +61,15 @@ public:
 	sf::Vector2f getPosition() const;
 	void setRotation(float angle);
 	void setOrigin(float x, float y);
-	void setOrigin(sf::Vector2f vec);
+	void setOrigin(const sf::Vector2f& vec);
 	void move(const sf::Vector2f& vec);
+	void scale(float x, float y);
+	void setScale(float x, float y);
+	void mirrorFlip();
+	void mirrorUnFlip();
+	void setBoundyBox(const std::vector<sf::Vector2f>& vertices);
+	void setBoundyBoxVertex(const sf::Vector2f& vertex, std::size_t index);
+	void setBoundyBoxVertex(float x, float y, std::size_t index);
 	virtual void render(sf::RenderTarget& target, sf::Time frameTime);
 	const Collider& getCollider() const;
 	std::size_t getType() const;
@@ -54,12 +77,18 @@ public:
 	void activate();
 	void deactivate();
 	bool isActive() const;
+	bool isDebug() const;
 	virtual GameObject& getRef();
 };
 class StaticGameObject : public GameObject
 {
 public:
-	using GameObject::GameObject;
+	StaticGameObject();
+	StaticGameObject(const StaticGameObject& obj);
+	StaticGameObject(StaticGameObject&& obj);
+	StaticGameObject& operator=(const StaticGameObject& obj);
+	StaticGameObject& operator=(StaticGameObject&& obj);
+	~StaticGameObject();
 	virtual StaticGameObject& getRef();
 };
 class DynamicGameObject : public GameObject
@@ -74,6 +103,7 @@ public:
 	DynamicGameObject& operator=(DynamicGameObject&& obj);
 	~DynamicGameObject();
 	void setVelocity(const sf::Vector2f& velocity_);
+	void setVelocity(float x, float y);
 	void setSlowMode(bool slowmode);
 	bool getSlowMode() const;
 	sf::Vector2f getVelocity() const;

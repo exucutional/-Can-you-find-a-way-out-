@@ -1,14 +1,18 @@
 #include "state.hpp"
-static const float SPEED_RATE = 200;
 GameState::GameState(sf::RenderWindow& window_, AssetManager& asManager_):
     State(window_, asManager_),
-    player(oManager)
+    player(oManager),
+    map(oManager)
 {
     __DEBUG_EXEC(std::cout << "GameState(sf::RenderWindow&, AssetManager&)\n");
-	nextStateIndex = GAME_STATE;
+	nextStateIndex = STATE::GAME;
 	isPaused = false;
     view.setSize(1920, 1080);
+    view.setViewport(sf::FloatRect(0.f, 0.f, 1.f, 1.f));
+    minimap.setSize(1920 * (200 * 128 / 1920), 1080 * (200 * 128 / 1080));
+    minimap.setViewport(sf::FloatRect(0.75f, 0.f, 0.25f, 0.25f));
     window.setView(view);
+    window.setView(minimap);
 	init();
 }
 GameState::~GameState()
@@ -26,10 +30,15 @@ void GameState::init()
         "getAnimation", &AssetManager::get<Animation>);
     lua.new_usertype<ObjectManager>("ObjectManager", sol::constructors<ObjectManager()>(),
         "createDynamicObject", &ObjectManager::createDynamicObject<>,
-        "newDynamicObjectType", &ObjectManager::newDynamicObjectType<>,
+        "newDynamicObjectType", &ObjectManager::newObjectType<DynamicGameObject>,
         "newDynamicObject", &ObjectManager::newDynamicObject,
         "addDynamicObject", &ObjectManager::addDynamicObject,
-        "findDynamicObject", &ObjectManager::findDynamicObject);
+        "findDynamicObject", &ObjectManager::findDynamicObject,
+        "newStaticObjectType", &ObjectManager::newObjectType<StaticGameObject>,
+        "newStaticObject", &ObjectManager::newStaticObject,
+        "addStaticObject", &ObjectManager::addStaticObject,
+        "newSpriteObjectType", &ObjectManager::newSpriteObjectType<>,
+        "newSpriteObject", &ObjectManager::newSpriteObject);
     lua.new_usertype<Animation>("Animation", sol::constructors<Animation()>(),
         "setSpriteSheet", sol::resolve<void(std::shared_ptr<sf::Texture>)>(&Animation::setSpriteSheet),
         "addFrame", &Animation::addFrame);
@@ -40,25 +49,38 @@ void GameState::init()
     lua.new_usertype<GameObject>("GameObject", sol::constructors<GameObject()>(),
         "addAnimation", &GameObject::addAnimation,
         "setAnimation", &GameObject::setAnimation,
+        "playAnimation", &GameObject::playAnimation,
         "getAnimation", &GameObject::getAnimation,
         "setRotation", &GameObject::setRotation,
         "setOrigin", sol::resolve<void(float, float)>(&GameObject::setOrigin),
         "setType", &GameObject::setType,
+        "scale", &GameObject::scale,
+        "setScale", &GameObject::setScale,
+        "setBoundyBoxVertex", sol::resolve<void(float, float, std::size_t)>(&GameObject::setBoundyBoxVertex),
         "setPosition", sol::overload(
             sol::resolve<void(float, float)>(&GameObject::setPosition),
             sol::resolve<void(const sf::Vector2f&)>(&GameObject::setPosition)));
+    lua.new_usertype<StaticGameObject>("StaticGameObject", sol::constructors<StaticGameObject()>(),
+        sol::base_classes, sol::bases<GameObject>());
     lua.new_usertype<DynamicGameObject>("DynamicGameObject", sol::constructors<DynamicGameObject()>(),
         sol::base_classes, sol::bases<GameObject>());
+    lua.new_usertype<SpriteObject>("SpriteObject", sol::constructors<SpriteObject()>(),
+        "sprite", &SpriteObject::sprite,
+        "setTexture", &SpriteObject::setTexture,
+        "getType", &SpriteObject::getType,
+        "setType", &SpriteObject::setType);
+    lua.new_usertype<sf::Sprite>("Sprite", sol::constructors<sf::Sprite()>(),
+        "setTexture", &sf::Sprite::setTexture,
+        "setTextureRect", &sf::Sprite::setTextureRect,
+        "setScale", sol::resolve<void(float, float)>(&sf::Sprite::setScale));
     lua.new_usertype<Player>("Player", sol::constructors<Player(ObjectManager&)>(),
         "setObject", sol::resolve<void(std::shared_ptr<DynamicGameObject>)>(&Player::setObject));
     lua["asManager"] = std::ref(asManager); 
     lua["oManager"] = std::ref(oManager);
     lua["player"] = std::ref(player);
-    lua["aDown"] = aDown;
-    lua["aLeft"] = aLeft;
-    lua["aRight"] = aRight;
-    lua["aUp"] = aUp;
     lua.script_file("scripts/gamestate_init.lua");
+    map.setMatrix(map.generate(200, 0.4, 4, 3, 4));
+    map.load();
 }
 void GameState::pause()
 {
@@ -70,44 +92,58 @@ void GameState::resume()
 }
 void GameState::processInput()
 {
-	//player.control();
+    static sf::Keyboard::Key lastKey;
     auto obj_ptr = player.getObject();
     assert(obj_ptr);
-	std::size_t aNum = obj_ptr->getCurrentAnimationNum();
-	sf::Vector2f velocity = obj_ptr->getVelocity();
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-		aNum = aDown;
-		velocity.y = SPEED_RATE;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-		aNum = aUp;
-		velocity.y = -SPEED_RATE;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-		aNum = aLeft;
-		velocity.x = -SPEED_RATE;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-		aNum = aRight;
-		velocity.x = SPEED_RATE;
-	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) 
+        oManager.action(*obj_ptr, ActionType::MoveDown);
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) 
+        oManager.action(*obj_ptr, ActionType::MoveUp);
+    bool A = sf::Keyboard::isKeyPressed(sf::Keyboard::A);
+    bool D = sf::Keyboard::isKeyPressed(sf::Keyboard::D);
+    do {
+        if (A && D && lastKey == sf::Keyboard::D) {
+            oManager.action(*obj_ptr, ActionType::MoveLeft);
+            break;
+        } 
+        if (D && A && lastKey == sf::Keyboard::A) {
+            oManager.action(*obj_ptr, ActionType::MoveRight);
+            break;
+        }
+        if (D) {
+            oManager.action(*obj_ptr, ActionType::MoveRight);
+            lastKey = sf::Keyboard::D;
+            break;
+        }
+        if (A) {
+            oManager.action(*obj_ptr, ActionType::MoveLeft);
+            lastKey = sf::Keyboard::A;
+            break;
+        }
+    } while (false);
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-        player.shoot(window);
+        //player.shoot(window);
     }
-	obj_ptr->setVelocity(velocity);
-	obj_ptr->playAnimation(aNum);
 }
 void GameState::update()
 {
     oManager.update();
     oManager.interact();
-    view.setCenter(player.getPosition());
-    window.setView(view);
+    sf::Mouse mouse;
+    auto player_pos = player.getPosition();
+    auto window_size = window.getSize();
+    auto mouse_pos = mouse.getPosition(window);
+    auto new_mouse_pos = sf::Vector2f(mouse_pos.x, mouse_pos.y) - (sf::Vector2f(window_size.x, window_size.y) / 2.f);
+    auto view_pos = player_pos + new_mouse_pos * 0.2f; 
+    view.setCenter(view_pos);
 }
 void GameState::render(sf::RenderTarget& target, sf::Time frameTime)
 {
-    target.clear(sf::Color(200, 100, 50));
-    oManager.render(target, frameTime);
+    target.clear(sf::Color(0, 0, 0));
+    window.setView(view);
+    oManager.render(target, frameTime, view);
+    //window.setView(minimap);
+    //oManager.render(target, frameTime);
 }
 int GameState::gameLoop()
 {
@@ -129,10 +165,10 @@ int GameState::gameLoop()
             switch (event.type) {
             case sf::Event::Closed:
                 window.close();
-                return CLOSED_STATE;
+                return STATE::CLOSED;
             case sf::Event::KeyPressed:
                 if(sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
-                return CLOSED_STATE;
+                return STATE::CLOSED;
             default:
                 break;
             }

@@ -17,11 +17,11 @@ VPATH = ./src
 OBJPATH = ./compile
 
 SRCC = luaScript.cpp main.cpp game.cpp gameobjects.cpp animation.cpp gamestate.cpp	\
-menustate.cpp collision.cpp interaction.cpp player.cpp
+menustate.cpp collision.cpp interaction.cpp player.cpp map.cpp
 
 HEAD = luaScript.hpp game.hpp assetmanager.hpp statemanager.hpp objectmanager.hpp	\
 gameobjects.hpp animation.hpp state.hpp collision.hpp interaction.hpp player.hpp	\
-vector_func.hpp
+vector_func.hpp map.hpp
 
 SRCSASM =
 

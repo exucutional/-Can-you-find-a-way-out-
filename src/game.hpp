@@ -9,6 +9,7 @@
 #include "state.hpp"
 #include "statemanager.hpp"
 #include "collision.hpp"
+#include "map.hpp"
 #include "LuaBridge.h"
 #include "sol/sol.hpp"
 #ifndef NDEBUG
