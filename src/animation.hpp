@@ -39,8 +39,9 @@ class AnimationManager : public sf::Drawable, public sf::Transformable
 	sf::Vertex vertices[4];
 	bool isPaused_;
 	bool isLooped_;
+	bool isNextLoop_;
 public:
-	AnimationManager(sf::Time frameTime = sf::seconds(0.2f), bool Pause = false, bool Loop = true);
+	AnimationManager(sf::Time frameTime = sf::seconds(0.2f), bool Pause = false, bool Loop = false);
 	AnimationManager(const AnimationManager& aManager);
 	AnimationManager(AnimationManager&& aManager);
 	AnimationManager& operator=(const AnimationManager& aManager);
@@ -50,8 +51,8 @@ public:
 	const Animation* getAnimation() const;
 	void setFrameTime(sf::Time time);
 	void update(sf::Time deltaTime);
-	void play();
-	void play(const Animation& animation);
+	void play(bool next = false);
+	void play(const Animation& animation, bool next = false);
 	void pause();
 	void stop();
 	void setLooped(bool Looped);
@@ -62,6 +63,7 @@ public:
 	bool isPaused() const;
 	sf::Time getFrameTime() const;
 	void setFrame(std::size_t newFrame, bool resetTime = true);
+	std::size_t getCurrentFrame() const;
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 };
 #endif //ANIMATION_HPP_

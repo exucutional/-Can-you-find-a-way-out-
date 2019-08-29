@@ -62,7 +62,8 @@ AnimationManager::AnimationManager(sf::Time frameTime, bool Pause, bool Loop):
 	frameTime_(frameTime),
 	currentFrame_(0),
 	isPaused_(Pause),
-	isLooped_(Loop)
+	isLooped_(Loop),
+	isNextLoop_(false)
 {
 	__DEBUG_EXEC(std::cout << "AnimationManager(sf::Time, bool, bool)\n");
 }
@@ -71,7 +72,8 @@ AnimationManager::AnimationManager(const AnimationManager& aManager):
 	frameTime_(aManager.frameTime_),
 	currentFrame_(aManager.currentFrame_),
 	isPaused_(false),
-	isLooped_(aManager.isLooped_)
+	isLooped_(aManager.isLooped_),
+	isNextLoop_(aManager.isNextLoop_)
 {
 	setScale(aManager.getScale());
 	__DEBUG_EXEC(std::cout << "AnimationManager(copy)\n");
@@ -80,7 +82,8 @@ AnimationManager::AnimationManager(AnimationManager&& aManager):
 	frameTime_(aManager.frameTime_),
 	currentFrame_(aManager.currentFrame_),
 	isPaused_(false),
-	isLooped_(aManager.isLooped_)
+	isLooped_(aManager.isLooped_),
+	isNextLoop_(aManager.isNextLoop_)
 {
 	__DEBUG_EXEC(std::cout << "AnimationManager(move)\n");
 	setScale(aManager.getScale());
@@ -93,6 +96,7 @@ AnimationManager& AnimationManager::operator=(const AnimationManager& aManager)
 	isPaused_ = false;
 	isLooped_ = aManager.isLooped_;
 	animation_ = aManager.animation_;
+	isNextLoop_ = aManager.isNextLoop_;
 	setScale(aManager.getScale());
 	return *this;
 }
@@ -102,6 +106,7 @@ AnimationManager& AnimationManager::operator=(AnimationManager&& aManager)
 	currentFrame_ = aManager.currentFrame_;
 	isPaused_ = false;
 	isLooped_ = aManager.isLooped_;
+	isNextLoop_ = aManager.isNextLoop_;
 	animation_ = std::move(aManager.animation_);
 	setScale(aManager.getScale());
 	return *this;
@@ -121,15 +126,16 @@ const Animation* AnimationManager::getAnimation() const
 {
 	return animation_;
 }
-void AnimationManager::play()
+void AnimationManager::play(bool next)
 {
 	isPaused_ = false;
+	isNextLoop_ = next;
 }
-void AnimationManager::play(const Animation& animation)
+void AnimationManager::play(const Animation& animation, bool next)
 {
 	if (animation_ != &animation)
 		setAnimation(animation);
-	play();
+	play(next);
 }
 void AnimationManager::pause()
 {
@@ -201,10 +207,13 @@ void AnimationManager::update(sf::Time deltaTime)
 		if (currentTime_ >= frameTime_) {
 			currentTime_ = sf::microseconds(currentTime_.asMicroseconds() % frameTime_.asMicroseconds());
 			if (currentFrame_ + 1 < animation_->getSize())
-				currentFrame_++;
+				currentFrame_++;	
 			else {
-				currentFrame_ = 0;
-				if (isLooped_) 
+				if (isNextLoop_ || isLooped_) {
+					isNextLoop_ = false;
+					currentFrame_ = 0;
+				}
+				if (!isLooped_) 
 					isPaused_ = true;
 			}
 			setFrame(currentFrame_, false);
@@ -218,4 +227,8 @@ void AnimationManager::draw(sf::RenderTarget& target, sf::RenderStates states) c
 		states.texture = texture_;
 		target.draw(vertices, 4, sf::Quads, states);
 	}
+}
+std::size_t AnimationManager::getCurrentFrame() const
+{
+	return currentFrame_;
 }

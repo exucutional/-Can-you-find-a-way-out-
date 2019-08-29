@@ -27,22 +27,7 @@ std::shared_ptr<DynamicGameObject> Player::getObject()
 }
 void Player::shoot(sf::RenderWindow& window)
 {
-	sf::Time time = clock.getElapsedTime();
-	if (time > shootfreq) {
-    	auto bullet = oManager.newDynamicObject(2);
-    	sf::Vector2f pos = obj_ptr->getPosition();
-    	pos.x += 16;
-    	pos.y += 16;
-    	bullet->setPosition(pos);
-    	sf::Mouse mouse;
-    	sf::Vector2i mouse_pos = mouse.getPosition(window);
-		auto new_mouse_pos = window.mapPixelToCoords(mouse_pos);
-    	bullet->setVelocity(1000.f * getNormalized(sf::Vector2f(new_mouse_pos.x - pos.x, new_mouse_pos.y - pos.y)));
-		bullet->setSlowMode(false);
-		float angle = atan((new_mouse_pos.y - pos.y) / (new_mouse_pos.x - pos.x)) * 180.f / PI;
-    	bullet->setRotation(angle);
-		clock.restart();
-	}
+	;
 }
 sf::Vector2f Player::getPosition() const
 {

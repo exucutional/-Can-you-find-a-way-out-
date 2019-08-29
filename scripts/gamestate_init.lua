@@ -23,13 +23,18 @@ for key1, val1 in pairs(dynobjlist) do
 	for i, vertex in ipairs(dynobjlist[key1].boundybox) do
 		obj:setBoundyBoxVertex(vertex[1], vertex[2], i - 1)
 	end
+	obj:setInteractRadius(dynobjlist[key1].interact_radius)
+	obj:setHp(dynobjlist[key1].hp)
+	obj:setMaxHp(dynobjlist[key1].hp)
+	obj:setDamage(dynobjlist[key1].damage)
+	obj:setAIclass(dynobjlist[key1].ai_class)
 	obj:setScale(dynobjlist[key1].scale[1], dynobjlist[key1].scale[2])
 	for key2, val2 in pairs(dynobjlist[key1].animation) do
 		local animation = asManager:getAnimation(val2)
 		assert(animation)
 		obj:addAnimation(animation, setting.animation[key2])
-		obj:setAnimation(setting.animation[key2])
 	end
+	obj:setAnimation(setting.animation.idle)
 end
 --STATIC OBJECTS INITIALIZATION
 for key1, val1 in pairs(stobjlist) do
@@ -57,6 +62,7 @@ for key1, val1 in pairs(spritelist) do
 	obj.sprite:setScale(spritelist[key1].scale[1], spritelist[key1].scale[2])
 end
 local mainObj = oManager:newDynamicObject(setting.type.player)
+mainObj:setPosition(0, 0)
 player:setObject(mainObj)
 --local ball2 = oManager:newDynamicObject(setting.type.ball)
 --ball2:setPosition(550, 100)

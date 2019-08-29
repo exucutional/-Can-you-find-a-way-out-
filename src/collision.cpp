@@ -62,10 +62,13 @@ Collider::Collider()
 	__DEBUG_EXEC(std::cout << "Collider()\n");
 	rectangle.setFillColor(sf::Color::Transparent);
 	convex.setFillColor(sf::Color::Transparent);
+	circle.setFillColor(sf::Color::Transparent);
 	rectangle.setOutlineThickness(OUTLINE_THICKNESS);
 	convex.setOutlineThickness(OUTLINE_THICKNESS);
+	circle.setOutlineThickness(OUTLINE_THICKNESS);
 	rectangle.setOutlineColor(sf::Color::White);
 	convex.setOutlineColor(sf::Color::White);
+	circle.setOutlineColor(sf::Color::White);
 	//LuaScript script("data/setting.lua");
 	//std::string fontPath = script.get<std::string>("FontPath");
 	//font.loadFromFile(fontPath);
@@ -150,6 +153,10 @@ void Collider::setRotation(float angle)
 	convex.setRotation(angle);
 	info.setRotation(angle);
 }
+void Collider::setCircleRadius(float radius)
+{
+	circle.setRadius(radius);
+}
 void Collider::move(float x, float y)
 {
 	rectangle.move(x, y);
@@ -173,6 +180,36 @@ void Collider::setConvexPosition(float x, float y)
 void Collider::setConvexPosition(const sf::Vector2f& vec)
 {
 	convex.setPosition(vec);
+}
+void Collider::setCirclePosition(float x, float y) 
+{
+	circle.setPosition(x, y);
+}
+void Collider::setCirclePosition(const sf::Vector2f& vec)
+{
+	circle.setPosition(vec);
+}
+void Collider::setCircleCenter(float x, float y)
+{
+	auto radius = circle.getRadius();
+	circle.setPosition(x - radius, y - radius);
+}
+void Collider::setCircleCenter(const sf::Vector2f& vec)
+{
+	auto radius = circle.getRadius();
+	circle.setPosition(vec.x - radius, vec.y - radius);
+}
+void Collider::setPosition(float x, float y)
+{
+	convex.setPosition(x, y);
+	rectangle.setPosition(x, y);
+	circle.setPosition(x, y);
+}
+void Collider::setPosition(const sf::Vector2f& vec)
+{
+	convex.setPosition(vec);
+	rectangle.setPosition(vec);
+	circle.setPosition(vec);
 }
 void Collider::setRect(const sf::FloatRect& fRect)
 {
@@ -204,13 +241,17 @@ bool Collision::intersect(const sf::CircleShape& circle1, const sf::CircleShape&
 {
 	sf::Vector2f centre1 = getGlobalCenter(circle1);
 	sf::Vector2f centre2 = getGlobalCenter(circle2);
-	if (sqr(centre1.x - centre2.x) + sqr(centre1.y - centre2.y) > sqr(circle1.getRadius()+ circle2.getRadius())) {
+	auto radius1 = circle1.getRadius();
+	auto radius2 = circle2.getRadius();
+	if (radius1 == 0 || radius2 == 0)
+		return false;
+	if (sqr(centre1.x - centre2.x) + sqr(centre1.y - centre2.y) > sqr(radius1 + radius2)) {
 		if (mtv_ptr)
 			*mtv_ptr = sf::Vector2f();
 		return false;
 	}
 	if (mtv_ptr)
-		*mtv_ptr = getNormalized(centre1 - centre2) * (circle1.getRadius() + circle2.getRadius() - getLength(centre1- centre2));
+		*mtv_ptr = getNormalized(centre1 - centre2) * (radius1 + radius2 - getLength(centre1- centre2));
 	return true;
 }
 bool Collision::intersect(const sf::RectangleShape& rectangle1, const sf::RectangleShape& rectangle2, sf::Vector2f* mtv_ptr)

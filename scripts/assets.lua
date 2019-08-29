@@ -8,9 +8,9 @@ textures = {
         name = "texture_player";
         path = "data/textures/player_sheet.png"
     };
-    texture_bullet = {
-        name = "texture_bullet";
-        path = "data/textures/bullet.png"
+    texture_projectile1 = {
+        name = "texture_projectile1";
+        path = "data/textures/projectile.png"
     };
     texture_wall = {
         name = "texture_wall";
@@ -19,6 +19,10 @@ textures = {
     texture_tiles = {
         name = "texture_tiles";
         path = "data/textures/tile_set.png"
+    };
+    texture_skeleton_king = {
+        name = "texture_skeleton_king";
+        path = "data/textures/skeleton_king.png"
     }
 }
 animations = {
@@ -29,11 +33,24 @@ animations = {
             {0, 0, 300, 300}
         }
     };
-    animation_bullet = {
-        name = "animation_bullet";
-        texture = "texture_bullet";
+    animation_projectile1 = {
+        name = "animation_projectile1";
+        texture = "texture_projectile1";
         frames = {
-            {0, 0, 16, 8}
+            {0, 320, 320, 320};
+            {320, 320, 320, 320};
+            {640, 320, 320, 320};
+            {960, 320, 320, 320}
+        }
+    };
+    animation_projectile1_blast = {
+        name = "animation_projectile1_blast";
+        texture = "texture_projectile1";
+        frames = {
+            {0, 0, 320, 320};
+            {320, 0, 320, 320};
+            {640, 0, 320, 320};
+            {960, 0, 320, 320}
         }
     };
     animation_wall = {
@@ -148,6 +165,36 @@ animations = {
         texture = "texture_tiles";
         frames = {
             {16, 0, 16, 16};
+        }
+    };
+    animation_skeleton_king_idle = {
+        name = "animation_skeleton_king_idle";
+        texture = "texture_skeleton_king";
+        frames = {
+            {0, 1280, 320, 320};
+            {320, 1280, 320, 320};
+            {640, 1280, 320, 320};
+            {960, 1280, 320, 320}           
+        }
+    };
+    animation_skeleton_king_walk = {
+        name = "animation_skeleton_king_walk";
+        texture = "texture_skeleton_king";
+        frames = {
+            {0, 960, 320, 320};
+            {320, 960, 320, 320};
+            {640, 960, 320, 320};
+            {960, 960, 320, 320}
+        }
+    };
+    animation_skeleton_king_death = {
+        name = "animation_skeleton_king_death";
+        texture = "texture_skeleton_king";
+        frames = {
+            {0, 0, 320, 320};
+            {320, 0, 320, 320};
+            {640, 0, 320, 320};
+            {960, 0, 320, 320}           
         }
     }
 }

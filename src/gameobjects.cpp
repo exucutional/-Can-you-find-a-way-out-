@@ -1,5 +1,6 @@
 #include "gameobjects.hpp"
-static const float SLOW_RATE = 10;
+static const float SLOW_RATE = 0.95;
+static const float SLOW_LIMIT = 50;
 SpriteObject::SpriteObject():
 	type(0)
 {
@@ -57,7 +58,7 @@ GameObject::GameObject():
 	type(0),
 	currentAnimationNum(0),
 	isActive_(true),
-	debugMode(false)
+	debugMode(true)
 {
 	collider.setConvexPointCount(4);
 }
@@ -68,6 +69,7 @@ GameObject::GameObject(const GameObject& obj):
 	debugMode(obj.debugMode)
 {
 	collider.setConvexPointCount(4);
+	collider.setCircleRadius(obj.collider.getCircle().getRadius());
 	animationVec = obj.animationVec;
 	aManager = obj.aManager;
 	auto boundybox = obj.collider.getConvex();
@@ -84,6 +86,7 @@ GameObject::GameObject(GameObject&& obj):
 	debugMode(obj.debugMode)
 {
 	collider.setConvexPointCount(4);
+	collider.setCircleRadius(obj.collider.getCircle().getRadius());
 	animationVec = std::move(obj.animationVec);
 	aManager = std::move(obj.aManager);
 	auto boundybox = obj.collider.getConvex();
@@ -95,6 +98,7 @@ GameObject::GameObject(GameObject&& obj):
 GameObject& GameObject::operator=(const GameObject& obj)
 {
 	collider.setConvexPointCount(4);
+	collider.setCircleRadius(obj.collider.getCircle().getRadius());
 	type = obj.type; 
 	currentAnimationNum = obj.currentAnimationNum;
 	isActive_ = true;
@@ -111,6 +115,7 @@ GameObject& GameObject::operator=(const GameObject& obj)
 GameObject& GameObject::operator=(GameObject&& obj)
 {
 	collider.setConvexPointCount(4);
+	collider.setCircleRadius(obj.collider.getCircle().getRadius());
 	type = obj.type; 
 	currentAnimationNum = obj.currentAnimationNum;
 	isActive_ = true;
@@ -132,17 +137,23 @@ void GameObject::addAnimation(std::shared_ptr<Animation> animation_ptr, std::siz
 	//sf::IntRect iRect = animation_ptr->getFrame(0);
 	//collider.setRect(iRect);
 }
-void GameObject::setAnimation(std::size_t num)
+bool GameObject::setAnimation(std::size_t num)
 {
 	assert(animationVec[num]);
 	currentAnimationNum = num;
 	aManager.setAnimation(*animationVec[num].get());
+	return true;
 }
-void GameObject::playAnimation(std::size_t num)
+bool GameObject::playAnimation(std::size_t num, bool next)
 {
 	assert(animationVec[num]);
-	currentAnimationNum = num;
-	aManager.play(*animationVec[num].get());
+	if ((currentAnimationNum == AnimationType::attack && aManager.isPaused())
+	|| currentAnimationNum != AnimationType::attack) {
+		currentAnimationNum = num;
+		aManager.play(*animationVec[num].get(), next);
+		return true;
+	}
+	return false;
 }
 const Animation* GameObject::getAnimation(std::size_t num) const 
 {
@@ -162,19 +173,38 @@ void GameObject::render(sf::RenderTarget& target, sf::Time frameTime)
 	if (debugMode) {
 		target.draw(collider.getInfo());
 		target.draw(collider.getConvex());
+		target.draw(collider.getCircle());
 	}
 }
 void GameObject::setPosition(float x, float y)
 {
 	aManager.setPosition(x, y);
-	collider.setRectPosition(x, y);
-	collider.setConvexPosition(x, y);
+	collider.setPosition(x, y);
+	auto rect = aManager.getLocalBounds();
+	collider.setCircleCenter(x + rect.width / 2, y + rect.height / 2);
 }
 void GameObject::setPosition(const sf::Vector2f& position)
 {
 	aManager.setPosition(position);
-	collider.setRectPosition(position);
-	collider.setConvexPosition(position);
+	collider.setPosition(position);
+	auto rect = aManager.getLocalBounds();
+	collider.setCircleCenter(position.x + rect.width / 2, position.y + rect.height / 2);
+}
+void GameObject::setCenter(float x, float y)
+{
+	auto rect = aManager.getLocalBounds();
+	auto pos =  sf::Vector2f(x - rect.width / 2, y - rect.height / 2);
+	aManager.setPosition(pos);
+	collider.setPosition(pos);
+	collider.setCircleCenter(x, y);
+}
+void GameObject::setCenter(const sf::Vector2f& position)
+{
+	auto rect = aManager.getLocalBounds();
+	auto pos =  sf::Vector2f(position.x - rect.width / 2, position.y - rect.height / 2);
+	aManager.setPosition(pos);
+	collider.setPosition(pos);
+	collider.setCircleCenter(position);
 }
 sf::Vector2f GameObject::getPosition() const 
 {
@@ -184,6 +214,13 @@ void GameObject::setRotation(float angle)
 {
 	aManager.setRotation(angle);
 	collider.setRotation(angle);
+}
+void GameObject::setRotationAroundCentre(float angle)
+{
+	auto oldCentre = getGlobalCenter();
+	setRotation(angle);
+	auto newCentre = getGlobalCenter();
+	move(oldCentre - newCentre); 
 }
 void GameObject::move(const sf::Vector2f& vec)
 {
@@ -277,6 +314,41 @@ void GameObject::setBoundyBoxVertex(float x, float y, std::size_t index)
 {
 	collider.setConvexPoint(index, sf::Vector2f(x, y));
 }
+void GameObject::setInteractRadius(float radius)
+{
+	collider.setCircleRadius(radius);
+}
+void GameObject::setLooped(bool looped)
+{
+	aManager.setLooped(looped);
+}
+bool GameObject::isMirror() const
+{
+	if (aManager.getScale().x > 0)
+		return false;
+	return true;
+}
+std::size_t GameObject::getCurrentAnimationFrame() const 
+{
+	return aManager.getCurrentFrame();
+}
+sf::Vector2f GameObject::getGlobalCenter() const
+{
+	const sf::Transform& transform = aManager.getTransform();
+	sf::FloatRect local = aManager.getLocalBounds();
+	return transform.transformPoint(local.left + local.width / 2.f, local.top + local.height / 2.f);
+}
+sf::Vector2f GameObject::getLocalCenter() const
+{
+	sf::FloatRect local = aManager.getLocalBounds();
+	return sf::Vector2f(local.left + local.width / 2.f, local.top + local.height / 2.f);
+}
+void GameObject::reset()
+{
+	setRotation(0);
+	setPosition(0 ,0);
+	setAnimation(0);
+}
 StaticGameObject::StaticGameObject()
 {
 	__DEBUG_EXEC(std::cout << "StaticGameObject()\n");
@@ -327,32 +399,52 @@ StaticGameObject& StaticGameObject::getRef()
 }
 DynamicGameObject::DynamicGameObject(sf::Vector2f velocity_):
 	velocity(velocity_),
-	slowmode(true)
+	activateTime(sf::Time::Zero),
+	deactivateTime(sf::Time::Zero),
+	slowmode(true),
+	AIclass("nope"),
+	ghostmode(false)
 {
 	__DEBUG_EXEC(std::cout << "DynamicGameObject(std::vector<float>)\n");
 }
 DynamicGameObject::DynamicGameObject(const DynamicGameObject& obj):
 	GameObject(obj),
+	ParameterObject(obj),
 	velocity(obj.velocity),
-	slowmode(obj.slowmode)
+	activateTime(obj.activateTime),
+	deactivateTime(obj.deactivateTime),
+	slowmode(obj.slowmode),
+	AIclass(obj.AIclass),
+	ghostmode(false)
 {
 	__DEBUG_EXEC(std::cout << "DynamicGameObject(copy)\n");
 }
 DynamicGameObject::DynamicGameObject(DynamicGameObject&& obj):
 	GameObject(obj),
-	slowmode(obj.slowmode)
+	ParameterObject(obj),
+	activateTime(obj.activateTime),
+	deactivateTime(obj.deactivateTime),
+	slowmode(obj.slowmode),
+	AIclass(obj.AIclass),
+	ghostmode(false)
 {
 	__DEBUG_EXEC(std::cout << "DynamicGameObject(move)\n");
 	velocity = std::move(obj.velocity);
 }
 DynamicGameObject& DynamicGameObject::operator=(const DynamicGameObject& obj)
 {
+	setHp(obj.getHp());
+	setMaxHp(obj.getMaxHp());
+	setDamage(obj.getDamage());
 	collider.setConvexPointCount(4);
 	setType(obj.getType());
 	activate();
 	setSlowMode(obj.getSlowMode());
 	animationVec = obj.animationVec;
 	aManager = obj.aManager;
+	AIclass = obj.AIclass;
+	activateTime = obj.activateTime;
+	deactivateTime = obj.deactivateTime;
 	auto boundybox = obj.collider.getConvex();
 	collider.setConvexPointCount(boundybox.getPointCount());
 	for (std::size_t i = 0; i < boundybox.getPointCount(); i++)
@@ -361,12 +453,18 @@ DynamicGameObject& DynamicGameObject::operator=(const DynamicGameObject& obj)
 }
 DynamicGameObject& DynamicGameObject::operator=(DynamicGameObject&& obj)
 {
+	setHp(obj.getHp());
+	setMaxHp(obj.getMaxHp());
+	setDamage(obj.getDamage());
 	collider.setConvexPointCount(4);
 	setType(obj.getType());
 	activate();
 	setSlowMode(obj.getSlowMode());
 	animationVec = std::move(obj.animationVec);
 	aManager = std::move(obj.aManager);
+	AIclass = obj.AIclass;
+	activateTime = obj.activateTime;
+	deactivateTime = obj.deactivateTime;
 	auto boundybox = obj.collider.getConvex();
 	collider.setConvexPointCount(boundybox.getPointCount());
 	for (std::size_t i = 0; i < boundybox.getPointCount(); i++)
@@ -380,11 +478,13 @@ DynamicGameObject::~DynamicGameObject()
 
 void DynamicGameObject::setVelocity(const sf::Vector2f& velocity_)
 {
-	velocity = velocity_;
+	if (getCurrentAnimationNum() != AnimationType::attack)
+		velocity = velocity_;
 }
 void DynamicGameObject::setVelocity(float x, float y)
 {
-	velocity = sf::Vector2f(x, y);
+	if (getCurrentAnimationNum() != AnimationType::attack)
+		velocity = sf::Vector2f(x, y);
 }
 sf::Vector2f DynamicGameObject::getVelocity() const
 {
@@ -400,30 +500,24 @@ bool DynamicGameObject::getSlowMode() const
 }
 void DynamicGameObject::update()
 {
+	float velx = velocity.x;
+	float vely = velocity.y;
 	if (slowmode) {
-		float velx = velocity.x;
-		float vely = velocity.y;
 		if (velx != 0) {
-			if (velx > SLOW_RATE)
-				velocity.x = velx - SLOW_RATE;
+			if (abs(velx) > SLOW_LIMIT)
+				velocity.x *= SLOW_RATE;
 			else
-			if (velx < -SLOW_RATE) 
-				velocity.x = velx + SLOW_RATE;
-			else 
 				velocity.x = 0;
 		}
 		if (vely != 0) {
-			if (vely > SLOW_RATE)
-				velocity.y = vely - SLOW_RATE;
+			if (abs(vely) > SLOW_LIMIT)
+				velocity.y *= SLOW_RATE;
 			else
-			if (vely < -SLOW_RATE) 
-				velocity.y = vely + SLOW_RATE;
-			else 
 				velocity.y = 0;
 		}
-		if (velx == 0 && vely == 0) {
-			playAnimation(AnimationType::idle);
-		}
+	}
+	if (velx == 0 && vely == 0 && getCurrentAnimationNum() != AnimationType::death) {
+		playAnimation(AnimationType::idle, true);
 	}
 	aManager.move(velocity.x * deltaTime.asSeconds(), velocity.y * deltaTime.asSeconds());
 	collider.move(velocity.x * deltaTime.asSeconds(), velocity.y * deltaTime.asSeconds());
@@ -431,7 +525,7 @@ void DynamicGameObject::update()
 void DynamicGameObject::render(sf::RenderTarget& target, sf::Time frameTime)
 {
 	//if (velocity.x != 0 || velocity.y != 0)
-		aManager.play();
+		//aManager.play();
 	//else
 		//aManager.stop();
 	aManager.update(frameTime);
@@ -439,9 +533,136 @@ void DynamicGameObject::render(sf::RenderTarget& target, sf::Time frameTime)
 	if (isDebug()) {
 		target.draw(collider.getInfo());
 		target.draw(collider.getConvex());
+		target.draw(collider.getCircle());
 	}
 }
 DynamicGameObject& DynamicGameObject::getRef()
 {
 	return std::ref(*this);
+}
+void DynamicGameObject::setActivateTime(sf::Time time)
+{
+	activateTime = time;
+}
+sf::Time DynamicGameObject::getActivateTime() const 
+{
+	return activateTime;
+}
+sf::Time DynamicGameObject::getElapsedTime() const
+{
+	return clock.getElapsedTime();
+}
+sf::Time DynamicGameObject::restartTime()
+{
+	return clock.restart();
+}
+void DynamicGameObject::reset()
+{
+	GameObject::reset();
+	clock.restart();
+	setHp(getMaxHp());
+	setState("idle");
+	setGhostMode(false);
+}
+void DynamicGameObject::setDeactivateTime(sf::Time time)
+{
+	deactivateTime = time;
+}
+sf::Time DynamicGameObject::getDeactivateTime() const
+{
+	return deactivateTime;
+}
+void DynamicGameObject::clockRestart()
+{
+	clock.restart();
+}
+void DynamicGameObject::setAIclass(std::string ai)
+{
+	AIclass = ai;
+}
+const std::string& DynamicGameObject::getAIclass() const
+{
+	return AIclass;
+}
+void DynamicGameObject::setGhostMode(bool mode)
+{
+	ghostmode = mode;
+}
+bool DynamicGameObject::getGhostMode() const
+{
+	return ghostmode;
+}
+ParameterObject::ParameterObject(int hp):
+_hp(hp),
+_maxhp(hp),
+_damage(0),
+_state("idle")
+{
+	__DEBUG_EXEC(std::cout << "ParameterObject()\n");
+}
+ParameterObject::ParameterObject(const ParameterObject& obj):
+_hp(obj._hp),
+_maxhp(obj._maxhp),
+_damage(obj._damage),
+_state("idle"),
+_target(0, 0)
+{
+	__DEBUG_EXEC(std::cout << "ParameterObject(copy)\n");
+}
+ParameterObject::ParameterObject(ParameterObject&& obj):
+_hp(obj._hp),
+_maxhp(obj._maxhp),
+_damage(obj._damage),
+_state("idle"),
+_target(0, 0)
+{
+	__DEBUG_EXEC(std::cout << "ParameterObject(move)\n");
+}
+ParameterObject& ParameterObject::operator=(const ParameterObject& obj)
+{
+	//later
+}
+ParameterObject& ParameterObject::operator=(ParameterObject&& obj)
+{
+	//later
+}
+void ParameterObject::setHp(int hp)
+{
+	_hp = hp;
+}
+void ParameterObject::setMaxHp(int hp)
+{
+	_maxhp = hp;
+}
+void ParameterObject::setDamage(int damage)
+{
+	_damage = damage;
+}
+void ParameterObject::setState(const std::string& newState)
+{
+	_state = newState;
+}
+void ParameterObject::setTarget(const sf::Vector2f& target)
+{
+	_target = target;
+}
+int ParameterObject::getHp() const
+{
+	return _hp;
+}
+int ParameterObject::getMaxHp() const
+{
+	return _maxhp;
+}
+int ParameterObject::getDamage() const
+{
+	return _damage;
+}
+std::string ParameterObject::getState() const
+{
+	return _state;
+}
+sf::Vector2f ParameterObject::getTarget() const
+{
+	return _target;	
 }

@@ -3,7 +3,7 @@ setting = {
     type = {
         player = 0;
         ball = 1;
-        bullet = 2;
+        projectile1 = 2;
         wall = 3;
         ground = 4;
         wall_horizontal = 5;
@@ -26,28 +26,41 @@ setting = {
         wall_vertical_right = 22;
         wall_vertical_right_bot = 23;
         wall_vertical_right_top = 24;
+        skeleton_king = 25;
     };
-    type_max = 25;
+    type_max = 26;
     action = {
         move_down = 0;
         move_left = 1;
         move_up = 2;
         move_right = 3;
-        attack = 4
+        attack = 4;
+        special = 5;
     };
-    action_type_max = 5;
+    action_type_max = 6;
     animation = {
         idle = 0;
         walk = 1;
         attack = 2;
+        death = 3
     };
-    animation_max = 3;
+    collide_mode = {
+        circle_mode = 0;
+        rect_mode = 1;
+        convex_mode = 2;
+    };
+    animation_max = 4;
     repulsion_rate = 50;
-    speed_rate = 300
+    speed_rate = 300;
+    projectile_speed = 1000;
+    tile_size = 128;
 }
 dynobjlist = {
     player = {
         type = setting.type.player;
+        hp = 100;
+        damage = 0;
+        ai_class = "nope";
         scale = {1, 1};
         boundybox = {
             {50, 90};
@@ -55,6 +68,8 @@ dynobjlist = {
             {100, 159};
             {50, 159}
         };
+        interact_radius = 500;
+        projectile_pos = {136, 104};
         animation = {
             idle = "animation_player_idle";
             walk = "animation_player_walk";
@@ -63,6 +78,9 @@ dynobjlist = {
     };
     ball = {
         type = setting.type.ball;
+        hp = 100;
+        damage = 0;
+        ai_class = "nope";
         scale = {1, 1};
         boundybox = {
             {0, 0};
@@ -70,23 +88,48 @@ dynobjlist = {
             {300, 300};
             {0, 300}
         };
+        interact_radius = 500;
         animation = {
             idle = "animation_ball"
         }
     };
-    bullet = {
-        type = setting.type.bullet;
+    projectile1 = {
+        type = setting.type.projectile1;
+        hp = 1;
+        damage = 50;
+        ai_class = "nope";
         scale = {1, 1};
         boundybox = {
-            {0, 0};
-            {16, 0};
-            {16, 8};
-            {0, 8}
+            {150, 150};
+            {175, 150};
+            {175, 175};
+            {150, 175}
         };
+        interact_radius = 0;
         animation = {
-            idle = "animation_bullet"
+            idle = "animation_projectile1";
+            death = "animation_projectile1_blast"
         }
     };
+    skeleton_king = {
+        type = setting.type.skeleton_king;
+        hp = 100;
+        damage = 0;
+        ai_class = "ai_enemy";
+        scale = {1, 1};
+        boundybox = {
+            {20, 80};
+            {290, 80};
+            {290, 280};
+            {20, 280}
+        };
+        interact_radius = 500;
+        animation = {
+            idle = "animation_skeleton_king_idle";
+            walk = "animation_skeleton_king_walk";
+            death = "animation_skeleton_king_death"
+        }
+    }
 }
 stobjlist = {
     wall = {
@@ -135,7 +178,7 @@ stobjlist = {
             {11, 0};
             {16, 0};
             {16, 16};
-            {0, 16};
+            {11, 16};
         };
         animation = {
             idle = "animation_wall_right_up_corner";
@@ -148,7 +191,7 @@ stobjlist = {
             {0, 12};
             {16, 12};
             {16, 16};
-            {16, 0};
+            {0, 16};
         };
         animation = {
             idle = "animation_wall_right_up_corner_top";
@@ -174,7 +217,7 @@ stobjlist = {
             {0, 12};
             {16, 12};
             {16, 16};
-            {16, 0};
+            {0, 16};
         };
         animation = {
             idle = "animation_wall_left_up_corner_top";
@@ -200,7 +243,7 @@ stobjlist = {
             {11, 0};
             {16, 0};
             {16, 16};
-            {0, 16};
+            {11, 16};
         };
         animation = {
             idle = "animation_wall_vertical_right";
@@ -213,7 +256,7 @@ stobjlist = {
             {0, 12};
             {16, 12};
             {16, 16};
-            {16, 0};
+            {0, 16};
         };
         animation = {
             idle = "animation_wall_horizontal_top";
@@ -226,7 +269,7 @@ stobjlist = {
             {0, 12};
             {16, 12};
             {16, 16};
-            {16, 0};
+            {0, 16};
         };
         animation = {
             idle = "animation_wall_horizontal_leftend_top";
@@ -239,7 +282,7 @@ stobjlist = {
             {0, 12};
             {16, 12};
             {16, 16};
-            {16, 0};
+            {0, 16};
         };
         animation = {
             idle = "animation_wall_horizontal_rightend_top";

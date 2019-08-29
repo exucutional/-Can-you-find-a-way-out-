@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <random>
+#include <set>
 #include "objectmanager.hpp"
 #ifndef NDEBUG
 #define __DEBUG_EXEC(code) code
@@ -24,5 +25,7 @@ public:
     std::vector<std::vector<int>> initMatrix(std::size_t size, double init_chance);
     std::vector<std::vector<int>> generateStep(std::size_t newlimit, std::size_t deletelimit);
     void dumpMatrix(std::vector<std::vector<int>> matrix) const;
+    //A* algoritm
+    std::vector<sf::Vector2i> getPath(sf::Vector2i start, sf::Vector2i goal);
 };
 #endif //MAP_HPP_

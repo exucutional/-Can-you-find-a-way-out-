@@ -1,27 +1,37 @@
 local objects = require "scripts/objects"
 function nope()
 end
-function player_ball(player, mtv)
-    player:move(mtv)
+function player_skeleton_king(self, obj, mtv, mode)
+    if mode == setting.collide_mode.convex_mode then
+        self:move(mtv)
+    end
 end
-function player_wall (player, mtv)
-    player:move(mtv)
+function wall_block(self, obj, mtv, mode)
+    --self:move(mtv)
 end
-function ball_player(ball, mtv)
-    ball:setVelocity(mtv * setting.repulsion_rate)
+function projectile_delete(self, obj, mtv, mode)
+    self:setVelocity(0, 0)
+    self:playAnimation(setting.animation.death)
+    self:setDeactivateTime(milliseconds(780))
+    self:clockRestart()
+    self:move(mtv)
+    self:setGhostMode(true)
 end
-function ball_ball(ball, mtv)
-    ball:move(mtv)
+function skeleton_king_player(self, obj, mtv, mode)
+    if mode == setting.collide_mode.circle_mode and self:getState() ~= "death" then
+        self:setState("attack")
+        self:setTarget(obj:getGlobalCenter())
+    end
 end
-function ball_bullet(ball, mtv)
-    ball:setVelocity(mtv * setting.repulsion_rate)
-end
-function ball_wall(ball, mtv)
-    ball:move(mtv)
-end
-function bullet_ball(bullet)
-    bullet:deactivate()
-end
-function bullet_wall(bullet)
-    bullet:deactivate()
+function damage(self, obj, mtv, mode)
+    self:setHp(self:getHp() - obj:getDamage())
+    if self:getHp() <= 0 then
+        self:setLooped(false)
+        self:setVelocity(0, 0)
+        self:move(mtv)
+        self:playAnimation(setting.animation.death)
+        self:setDeactivateTime(seconds(10))
+        self:clockRestart()
+        self:setState("death")
+    end
 end

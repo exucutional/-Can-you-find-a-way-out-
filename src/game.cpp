@@ -51,29 +51,90 @@ void ObjectManager::init()
 {
     lua.open_libraries(sol::lib::base, sol::lib::package);
     lua.new_usertype<ObjectManager>("ObjectManager", sol::constructors<ObjectManager()>(),
-        "addScript", &ObjectManager::addScript);
+        "addScript", &ObjectManager::addScript,
+        "createDynamicObject", &ObjectManager::createDynamicObject<>,
+        "newDynamicObjectType", &ObjectManager::newObjectType<DynamicGameObject>,
+        "newDynamicObject", &ObjectManager::newDynamicObject,
+        "addDynamicObject", &ObjectManager::addDynamicObject,
+        "findDynamicObject", &ObjectManager::findDynamicObject,
+        "newStaticObjectType", &ObjectManager::newObjectType<StaticGameObject>,
+        "newStaticObject", &ObjectManager::newStaticObject,
+        "addStaticObject", &ObjectManager::addStaticObject,
+        "newSpriteObjectType", &ObjectManager::newSpriteObjectType<>,
+        "newSpriteObject", &ObjectManager::newSpriteObject);
     lua["oManager"] = std::ref(*this);
     lua.new_usertype<GameObject>("GameObject", sol::constructors<GameObject()>(),
         "playAnimation", &GameObject::playAnimation,
+        "getAnimation", &GameObject::getAnimation,
         "getCurrentAnimationNum", &GameObject::getCurrentAnimationNum,
         "scale", &GameObject::scale,
+        "getPosition", &GameObject::getPosition,
+        "setRotation", &GameObject::setRotation,
         "setPosition", sol::overload(
             sol::resolve<void(float, float)>(&GameObject::setPosition),
             sol::resolve<void(const sf::Vector2f&)>(&GameObject::setPosition)),
+        "setCenter", sol::overload(
+            sol::resolve<void(float, float)>(&GameObject::setCenter),
+            sol::resolve<void(const sf::Vector2f&)>(&GameObject::setCenter)
+        ),
         "move", &GameObject::move,
         "mirrorFlip", &GameObject::mirrorFlip,
-        "mirrorUnFlip", &GameObject::mirrorUnFlip);
+        "mirrorUnFlip", &GameObject::mirrorUnFlip,
+        "getCurrentAnimationFrame", &GameObject::getCurrentAnimationFrame,
+        "isMirror", &GameObject::isMirror,
+        "getGlobalCenter", &GameObject::getGlobalCenter,
+        "getLocalCenter", &GameObject::getLocalCenter,
+        "setRotationAroundCentre", &GameObject::setRotationAroundCentre,
+        "setLooped", &GameObject::setLooped);
+    lua.new_usertype<ParameterObject>("ParameterObject", sol::constructors<ParameterObject(int)>(),
+        "setHp", &ParameterObject::setHp,
+        "setMaxHp", &ParameterObject::setMaxHp,
+        "setDamage", &ParameterObject::setDamage,
+        "setState", &ParameterObject::setState,
+        "getDamage", &ParameterObject::getDamage,
+        "getState", &ParameterObject::getState,
+        "getTarget", &ParameterObject::getTarget);
     lua.new_usertype<DynamicGameObject>("DynamicGameObject", sol::constructors<DynamicGameObject()>(),
-        sol::base_classes, sol::bases<GameObject>(),
+        sol::base_classes, sol::bases<GameObject, ParameterObject>(),
         "getVelocity", &DynamicGameObject::getVelocity,
-        "setVelocity", sol::resolve<void(float, float)>(&DynamicGameObject::setVelocity),
-        "deactivate", &DynamicGameObject::deactivate);
+        "setSlowMode", &DynamicGameObject::setSlowMode,
+        "setVelocity", sol::overload(
+            sol::resolve<void(const sf::Vector2f&)>(&DynamicGameObject::setVelocity),
+            sol::resolve<void(float, float)>(&DynamicGameObject::setVelocity)
+        ),
+        "deactivate", &DynamicGameObject::deactivate,
+        "setActivateTime", &DynamicGameObject::setActivateTime,
+        "setDeactivateTime", &DynamicGameObject::setDeactivateTime,
+        "getActivateTime", &DynamicGameObject::getActivateTime,
+        "getElapsedTime", &DynamicGameObject::getElapsedTime,
+        "restartTime", &DynamicGameObject::restartTime);
+    lua.new_usertype<std::pair<int, int>>("PairII", sol::constructors<std::pair<int, int>(int, int)>(),
+        "first", &std::pair<int, int>::first,
+        "second", &std::pair<int, int>::second);
     lua.new_usertype<sf::Vector2f>("Vector2f", sol::constructors<sf::Vector2f(), sf::Vector2f(float, float)>(),
         "x", &sf::Vector2f::x,
         "y", &sf::Vector2f::y);
     lua["Vector2f"][sol::meta_function::multiplication] = [](sf::Vector2f& vec, float num) -> sf::Vector2f {
         return sf::Vector2f(vec.x * num, vec.y * num);
     };
+    lua["Vector2f"][sol::meta_function::addition] = [](sf::Vector2f& vec1, sf::Vector2f vec2) -> sf::Vector2f {
+        return sf::Vector2f(vec1.x + vec2.x, vec1.y + vec2.y);
+    };
+    lua["Vector2f"][sol::meta_function::subtraction] = [](sf::Vector2f& vec1, sf::Vector2f vec2) -> sf::Vector2f {
+        return sf::Vector2f(vec1.x - vec2.x, vec1.y - vec2.y);
+    };
+    lua["Vector2f"][sol::meta_function::division] = [](sf::Vector2f& vec, float num) -> sf::Vector2f {
+        return sf::Vector2f(vec.x / num, vec.y / num);
+    };
+    lua.new_usertype<sf::Time>("Time", sol::constructors<sf::Time()>(),
+    "asSeconds", &sf::Time::asSeconds,
+    "asMilliseconds", &sf::Time::asMilliseconds,
+    "asMicroseconds", &sf::Time::asMicroseconds);
+    lua["seconds"] = &sf::seconds;
+    lua["milliseconds"] = &sf::milliseconds;
+    lua["microseconds"] = &sf::microseconds;
+    lua["getNormalized"] = &getNormalized;
+    lua["atan"] = &atan;
     sol::protected_function_result script_result = lua.script_file("scripts/objects.lua");
     std::size_t type_max = lua["setting"]["type_max"];
     std::size_t action_type_max = lua["setting"]["action_type_max"];
@@ -89,28 +150,11 @@ ObjectManager::~ObjectManager()
 {
     __DEBUG_EXEC(std::cout << "~ObjectManager()\n");
 }
-std::shared_ptr<DynamicGameObject> ObjectManager::newDynamicObject(std::size_t type)
-{
-    for (auto& obj: dynObjVec) {
-        if (obj->getType() == type && !obj->isActive()) {
-            obj->activate();
-            return obj;
-        }
-    }
-    for (auto& obj: typeObjVec) {
-        if (obj->getType() == type) {
-            auto obj_ptr =  std::make_shared<DynamicGameObject>(static_cast<DynamicGameObject&>(*obj));
-            dynObjVec.push_back(obj_ptr);
-            return obj_ptr;
-        }
-    }
-    std::cerr << "_____ERROR: Dynamic object type " << type << " is uninitialized\n";
-    return nullptr;
-}
 std::shared_ptr<StaticGameObject> ObjectManager::newStaticObject(std::size_t type)
 {
     for (auto& obj: stObjVec) {
         if (obj->getType() == type && !obj->isActive()) {
+            obj->reset();
             obj->activate();
             return obj;
         }
@@ -137,6 +181,26 @@ std::shared_ptr<SpriteObject> ObjectManager::newSpriteObject(std::size_t type)
     std::cerr << "_____ERROR: Static object type " << type << " is uninitialized\n";
     return nullptr;
 }
+std::shared_ptr<DynamicGameObject> ObjectManager::newDynamicObject(std::size_t type) 
+{
+		for (auto& obj: dynObjVec) {
+			if (obj->getType() == type && !obj->isActive()) {
+				obj->reset();
+				obj->activate();
+				return obj;
+			}
+		}
+		for (auto& obj: typeObjVec) {
+			if (obj->getType() == type) {
+				auto obj_ptr =  std::make_shared<DynamicGameObject>(
+					static_cast<DynamicGameObject&>(obj->getRef()));
+				dynObjVec.push_back(obj_ptr);
+				return obj_ptr;
+			}
+		}
+		std::cerr << "_____ERROR: Dynamic object type " << type << " is uninitialized\n";
+		return nullptr;
+	}
 std::shared_ptr<DynamicGameObject> ObjectManager::findDynamicObject(std::size_t type) 
 {
     for (auto& obj: dynObjVec) {
@@ -216,10 +280,19 @@ void ObjectManager::interact()
     sf::Vector2f* mtv_ptr = &mtv;
     for (std::size_t i = 0; i < dynsize - 1; i++) {
         for (std::size_t j = i + 1; j < dynsize; j++) {
-            if (dynObjVec[i]->isActive() && dynObjVec[j]->isActive())
+            bool isInteract = dynObjVec[i]->isActive() 
+                              && !dynObjVec[i]->getGhostMode()
+                              && dynObjVec[j]->isActive()
+                              && !dynObjVec[j]->getGhostMode();
+            if (isInteract) {
                 if (collision.isCollide(dynObjVec[i]->getCollider(), dynObjVec[j]->getCollider(), CONVEX_MODE, mtv_ptr)) {
-                    intManager.interact(*dynObjVec[i], *dynObjVec[j], mtv);
-                    intManager.interact(*dynObjVec[j], *dynObjVec[i], -mtv);
+                    intManager.interact(dynObjVec[i]->getRef(), dynObjVec[j]->getRef(), mtv, CONVEX_MODE);
+                    intManager.interact(dynObjVec[j]->getRef(), dynObjVec[i]->getRef(), -mtv, CONVEX_MODE);
+                }
+                if (collision.isCollide(dynObjVec[i]->getCollider(), dynObjVec[j]->getCollider(), CIRCLE_MODE, mtv_ptr)) {
+                    intManager.interact(dynObjVec[i]->getRef(), dynObjVec[j]->getRef(), mtv, CIRCLE_MODE);
+                    intManager.interact(dynObjVec[j]->getRef(), dynObjVec[i]->getRef(), -mtv, CIRCLE_MODE);
+                }
             }
         }
     }
@@ -229,10 +302,10 @@ void ObjectManager::interact()
         for (std::size_t j = 0; j < dynsize; j++) {
             auto pos2 = dynObjVec[j]->getPosition();
             bool inRange = abs(pos1.x - pos2.x) < 1000 && abs(pos1.y - pos2.y) < 1000;
-            if (dynObjVec[j]->isActive() && stObjVec[i]->isActive() && inRange)
+            if (!dynObjVec[j]->getGhostMode() && dynObjVec[j]->isActive() && stObjVec[i]->isActive() && inRange)
                 if (collision.isCollide(dynObjVec[j]->getCollider(), stObjVec[i]->getCollider(), CONVEX_MODE, mtv_ptr)) {
-                    intManager.interact(*dynObjVec[j], *stObjVec[i], mtv);
-                    intManager.interact(*stObjVec[i], *dynObjVec[j], mtv);
+                    intManager.interact(dynObjVec[j]->getRef(), stObjVec[i]->getRef(), mtv, CONVEX_MODE);
+                    intManager.interact(stObjVec[i]->getRef(), dynObjVec[j]->getRef(), mtv, CONVEX_MODE);
                 }
         }
     }
@@ -240,18 +313,25 @@ void ObjectManager::interact()
 void ObjectManager::update()
 {
     for (auto& obj: dynObjVec) {
+        auto activateTime = obj->getActivateTime();
+        if (!obj->isActive() && activateTime != sf::Time::Zero
+        && obj->getElapsedTime() > activateTime) {
+            obj->activate();
+            obj->setActivateTime(sf::Time::Zero);
+        }
+        auto deactivateTime = obj->getDeactivateTime();
+        if (obj->isActive() && deactivateTime != sf::Time::Zero
+        && obj->getElapsedTime() > deactivateTime) {
+            obj->deactivate();
+            obj->setDeactivateTime(sf::Time::Zero);
+        }
         if (obj && obj->isActive())
             obj->update();
     }
 }
-void ObjectManager::action(DynamicGameObject& object, std::size_t actionType)
+const std::vector<std::shared_ptr<DynamicGameObject>>& ObjectManager::getDynamicObjects() const
 {
-    auto obj_type = object.getType();
-    assert(obj_type < scriptVec.size());
-    assert(actionType < scriptVec[obj_type].size());
-    auto script = lua.safe_script(bcode.as_string_view(), sol::script_pass_on_error);
-    assert(script.valid());
-    lua[scriptVec[obj_type][actionType]](object.getRef());
+    return dynObjVec;
 }
 App::App() 
 :asManager(),

@@ -1,8 +1,10 @@
 #include "state.hpp"
+static const double PI = 3.1415926535;
 GameState::GameState(sf::RenderWindow& window_, AssetManager& asManager_):
     State(window_, asManager_),
     player(oManager),
-    map(oManager)
+    map(oManager),
+    aiManager(oManager, map)
 {
     __DEBUG_EXEC(std::cout << "GameState(sf::RenderWindow&, AssetManager&)\n");
 	nextStateIndex = STATE::GAME;
@@ -56,14 +58,22 @@ void GameState::init()
         "setType", &GameObject::setType,
         "scale", &GameObject::scale,
         "setScale", &GameObject::setScale,
+        "setInteractRadius", &GameObject::setInteractRadius,
         "setBoundyBoxVertex", sol::resolve<void(float, float, std::size_t)>(&GameObject::setBoundyBoxVertex),
         "setPosition", sol::overload(
             sol::resolve<void(float, float)>(&GameObject::setPosition),
-            sol::resolve<void(const sf::Vector2f&)>(&GameObject::setPosition)));
+            sol::resolve<void(const sf::Vector2f&)>(&GameObject::setPosition)));    
+    lua.new_usertype<ParameterObject>("ParameterObject", sol::constructors<ParameterObject(int)>(),
+        "setHp", ParameterObject::setHp,
+        "getHp", ParameterObject::getHp,
+        "setMaxHp", ParameterObject::setMaxHp,
+        "setDamage", ParameterObject::setDamage,
+        "getDamage", ParameterObject::getDamage);
     lua.new_usertype<StaticGameObject>("StaticGameObject", sol::constructors<StaticGameObject()>(),
         sol::base_classes, sol::bases<GameObject>());
     lua.new_usertype<DynamicGameObject>("DynamicGameObject", sol::constructors<DynamicGameObject()>(),
-        sol::base_classes, sol::bases<GameObject>());
+        sol::base_classes, sol::bases<GameObject, ParameterObject>(),
+        "setAIclass", DynamicGameObject::setAIclass);
     lua.new_usertype<SpriteObject>("SpriteObject", sol::constructors<SpriteObject()>(),
         "sprite", &SpriteObject::sprite,
         "setTexture", &SpriteObject::setTexture,
@@ -79,7 +89,7 @@ void GameState::init()
     lua["oManager"] = std::ref(oManager);
     lua["player"] = std::ref(player);
     lua.script_file("scripts/gamestate_init.lua");
-    map.setMatrix(map.generate(200, 0.4, 4, 3, 4));
+    map.generate(200, 0.4, 4, 3, 4);
     map.load();
 }
 void GameState::pause()
@@ -93,6 +103,7 @@ void GameState::resume()
 void GameState::processInput()
 {
     static sf::Keyboard::Key lastKey;
+    static bool RMBblock;
     auto obj_ptr = player.getObject();
     assert(obj_ptr);
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) 
@@ -122,19 +133,34 @@ void GameState::processInput()
         }
     } while (false);
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+        sf::Mouse mouse;
+    	sf::Vector2i mouse_pos = mouse.getPosition(window);
+		auto new_mouse_pos = window.mapPixelToCoords(mouse_pos);
+        oManager.action(*obj_ptr, ActionType::Attack, new_mouse_pos);
         //player.shoot(window);
     }
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Right) && !RMBblock) {
+        RMBblock = true;
+        sf::Mouse mouse;
+        sf::Vector2i mouse_pos = mouse.getPosition(window);
+		auto new_mouse_pos = window.mapPixelToCoords(mouse_pos);
+        oManager.action(*obj_ptr, ActionType::Special, new_mouse_pos);
+    }
+    if (!sf::Mouse::isButtonPressed(sf::Mouse::Right)) 
+        RMBblock = false;
 }
 void GameState::update()
 {
     oManager.update();
     oManager.interact();
+    aiManager.update();
     sf::Mouse mouse;
     auto player_pos = player.getPosition();
+    auto size = player.getObject()->getAnimation(0)->getFrame(0);
     auto window_size = window.getSize();
     auto mouse_pos = mouse.getPosition(window);
     auto new_mouse_pos = sf::Vector2f(mouse_pos.x, mouse_pos.y) - (sf::Vector2f(window_size.x, window_size.y) / 2.f);
-    auto view_pos = player_pos + new_mouse_pos * 0.2f; 
+    auto view_pos = player_pos + new_mouse_pos * 0.2f + sf::Vector2f(size.width / 2, size.height / 2); 
     view.setCenter(view_pos);
 }
 void GameState::render(sf::RenderTarget& target, sf::Time frameTime)

@@ -11,6 +11,7 @@
 #include "assert.hpp"
 #include "player.hpp"
 #include "map.hpp"
+#include "ai.hpp"
 #include "sol/sol.hpp"
 extern const sf::Time deltaTime;
 
@@ -32,7 +33,8 @@ enum ActionType
 	MoveLeft,
 	MoveUp,
 	MoveRight,
-	Attack
+	Attack,
+	Special
 };
 class State
 {
@@ -47,7 +49,7 @@ protected:
 public:
 	State(sf::RenderWindow& window_, AssetManager& asManager_):
 	window(window_),
-	asManager(asManager_) 
+	asManager(asManager_)
 	{}
 	virtual ~State() {}
 	virtual void init() = 0;
@@ -75,6 +77,7 @@ class GameState : public State
 {
 	Player player;
 	Map map;
+	AImanager aiManager;
 public:
 	GameState(sf::RenderWindow& window_, AssetManager& asManager_);
 	~GameState();

@@ -30,7 +30,7 @@ public:
         assert(obj2_type < scriptVec[obj1_type].size());
         auto script = lua.safe_script(bcode.as_string_view(), sol::script_pass_on_error);
         assert(script.valid());
-        lua[scriptVec[obj1_type][obj2_type]](obj1.getRef(), args...);
+        lua[scriptVec[obj1_type][obj2_type]](obj1, obj2, args...);
         //lua[scriptVec[obj2_type][obj1_type]](obj2.getRef(), args...);
    }
    ~InteractionManager();

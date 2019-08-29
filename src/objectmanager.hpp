@@ -56,14 +56,23 @@ public:
 		dynObjVec.push_back(obj_ptr);
 		return obj_ptr;
 	}
+	template<typename... Args>
+	void action(DynamicGameObject& object, std::size_t actionType, Args... args) {
+    	auto obj_type = object.getType();
+    	assert(obj_type < scriptVec.size());
+    	assert(actionType < scriptVec[obj_type].size());
+    	auto script = lua.safe_script(bcode.as_string_view(), sol::script_pass_on_error);
+    	assert(script.valid());
+    	lua[scriptVec[obj_type][actionType]](object.getRef(), args...);
+	}
 	void addDynamicObject(std::shared_ptr<DynamicGameObject> obj_ptr);
 	void addStaticObject(std::shared_ptr<StaticGameObject> obj_ptr);
 	std::shared_ptr<DynamicGameObject> getDynObject(std::size_t num) const;
 	std::shared_ptr<StaticGameObject> getStObject(std::size_t num) const;
 	const std::size_t getDynSize() const;
 	const std::size_t getStSize() const;
+	const std::vector<std::shared_ptr<DynamicGameObject>>& getDynamicObjects() const;
 	void render(sf::RenderTarget& target, sf::Time frameTime, sf::View view);
-	void action(DynamicGameObject& object, std::size_t actionType);
 	void addScript(const std::string& name, std::size_t index1, std::size_t index2);
 	void update();
 	void interact();

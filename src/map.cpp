@@ -44,6 +44,74 @@ static int getLRUDcountNeighbours(const std::vector<std::vector<int>>& vector, s
 {
     return getLeftNeighbour(vector, i, j) + getRightNeighbour(vector, i, j) + getUpNeighbour(vector, i, j) + getDownNeighbour(vector, i, j);
 }
+struct cmp
+{
+    bool operator()(const sf::Vector2i& a, const sf::Vector2i& b) const
+    {
+        if (a.x == b.x)
+            return a.y > b.y;
+        return a.x < b.x;
+    }
+};
+static std::vector<sf::Vector2i> getNeighbours(const std::vector<std::vector<int>>& matrix, const sf::Vector2i& current) {
+    std::vector<sf::Vector2i> result;
+    int size = matrix.size();
+    if (current.x != 0 && matrix[current.y][current.x - 1] != 1) 
+        result.push_back(sf::Vector2i(current.x - 1, current.y));
+    if (current.x + 1 < size && matrix[current.y][current.x + 1] != 1)
+        result.push_back(sf::Vector2i(current.x + 1, current.y));
+    if (current.y != 0 && matrix[current.y - 1][current.x] != 1)
+        result.push_back(sf::Vector2i(current.x, current.y - 1));
+    if (current.y + 1 < size && matrix[current.y + 1][current.x] != 1)
+        result.push_back(sf::Vector2i(current.x, current.y + 1));
+    if (current.x != 0 && current.y != 0 && matrix[current.y - 1][current.x - 1] != 1)
+        result.push_back(sf::Vector2i(current.x - 1, current.y - 1));
+    if (current.x + 1 < size && current.y != 0 && matrix[current.y - 1][current.x + 1] != 1)
+        result.push_back(sf::Vector2i(current.x + 1, current.y - 1));
+    if (current.x != 0 && current.y + 1 < size && matrix[current.y + 1][current.x - 1] != 1)
+        result.push_back(sf::Vector2i(current.x - 1, current.y + 1));
+    if (current.x + 1 < size && current.y + 1 < size && matrix[current.y + 1][current.x + 1] != 1)
+        result.push_back(sf::Vector2i(current.x + 1, current.y + 1));
+    return result;
+}
+static float h(const sf::Vector2i& current, const sf::Vector2i& goal)
+{
+    float tmp1 = goal.x - current.x;
+    float tmp2 = goal.y - current.y;
+    tmp1 *= tmp1;
+    tmp2 *= tmp2;
+    return sqrt(tmp1 + tmp2);
+}
+static float g(const std::pair<int, int>& start, const std::pair<int, int>& current)
+{
+    return 0;
+}
+static std::vector<sf::Vector2i> reconstructPath(const std::vector<std::vector<sf::Vector2i>>& cameFrom, const sf::Vector2i& goal, const sf::Vector2i& start) 
+{
+    std::vector<sf::Vector2i> result;
+    result.push_back(goal);
+    auto current = goal;
+    //std::cout << "Path:";
+    while (current != start) {
+        //std::cout << "(" << current.x << "," << current.y << ")";
+        result.push_back(current);
+        current = cameFrom[current.y][current.x];
+    }
+    //std::cout << std::endl;
+    return result;
+}
+static sf::Vector2i getMinfScore(const std::vector<std::vector<float>>& fScore, const std::set<sf::Vector2i, cmp>& openSet)
+{
+    float minfScore = std::numeric_limits<float>::infinity();
+    sf::Vector2i result(0, 0);
+    for (auto& current: openSet) {
+        if (fScore[current.y][current.x] < minfScore) {
+            result = current;
+            minfScore = fScore[current.y][current.x];
+        }   
+    }
+    return result;
+}
 Map::Map(ObjectManager& oManager_):
 oManager(oManager_)
 {
@@ -125,7 +193,7 @@ void Map::load() const
                     sprite_obj_ptr = oManager.newSpriteObject(script.get<int>("setting.type.wall_horizontal"));
                     sprite_obj_ptr->sprite.setPosition((jj + 1) * tile_size, (ii + 1) * tile_size);
                     if (i != 0 && j + 1 != matrix[i - 1].size())
-                    if (getLRUDcountNeighbours(matrix, i - 1, j + 1) != 2) {
+                    if (getLRUDcountNeighbours(matrix, i - 1, j + 1) != 2 && matrix[i - 1][j + 1] == 1) {
                         static_obj_ptr = oManager.newStaticObject(script.get<int>("setting.type.wall_vertical_left"));
                         static_obj_ptr->setPosition((jj + 2) * tile_size, ii * tile_size);
                     }
@@ -263,7 +331,7 @@ void Map::load() const
                     }
                     break;
                 case 10:    //1010
-                    break;
+                    ;
                 case 11:    //1011
                     static_obj_ptr = oManager.newStaticObject(script.get<int>("setting.type.wall_horizontal_top"));
                     static_obj_ptr->setPosition(jj * tile_size, ii * tile_size);
@@ -419,4 +487,53 @@ void Map::dumpMatrix(std::vector<std::vector<int>> matrix) const
         }
         std::cout << std::endl;
     }
+}
+std::vector<sf::Vector2i> Map::getPath(sf::Vector2i start, sf::Vector2i goal)
+{
+    auto size = matrix.size();
+    //std::cout << "Start: (" << start.x << "," << start.y << ")\n";
+    //std::cout << "End: (" << goal.x << "," << goal.y << ")\n";
+    std::vector<std::vector<sf::Vector2i>> cameFrom(size, std::vector<sf::Vector2i>(size, sf::Vector2i(0, 0)));
+    std::vector<std::vector<float>> gScore(size, std::vector<float>(size, std::numeric_limits<float>::infinity()));
+    gScore[start.y][start.x] = 0;
+    std::vector<std::vector<float>> fScore(size, std::vector<float>(size, std::numeric_limits<float>::infinity()));
+    fScore[start.y][start.x] = h(start, goal);
+    std::set<sf::Vector2i, cmp> openSet;
+    openSet.insert(start);
+    std::set<sf::Vector2i, cmp> closedSet;
+    auto dump = [](const std::set<sf::Vector2i, cmp>& openSet) {
+        for (auto& current: openSet) {
+            std::cout << "(" << current.x << "," << current.y << ") ";
+        }
+        std::cout << std::endl;
+    };
+    auto max_iter = 50;
+    auto iter = 0;
+    while (!openSet.empty()) {
+        if (iter++ > max_iter)
+            break;
+        //dump(openSet);
+        auto current = getMinfScore(fScore, openSet);
+        //std::cout << "MinfScore: (" << current.x << "," << current.y << ")\n";
+        if (current.x == goal.x && current.y == goal.y)
+            return reconstructPath(cameFrom, current, start);
+        openSet.erase(current);
+        closedSet.insert(current);
+        auto neighbours = getNeighbours(matrix, current);
+        for (auto& neighbour: neighbours) {
+            if (closedSet.find(neighbour) != closedSet.end())
+                continue;
+            auto tentative_gScore = gScore[current.y][current.x] + 1;
+            if (tentative_gScore < gScore[neighbour.y][neighbour.x]) {
+                openSet.insert(neighbour);
+                cameFrom[neighbour.y][neighbour.x] = current;
+                //std::cout << "(" << neighbour.x << "," << neighbour.y << ") came from minfScore\n";
+                gScore[neighbour.y][neighbour.x] = tentative_gScore;
+                fScore[neighbour.y][neighbour.x] = tentative_gScore + h(neighbour, goal);
+            }
+        }
+    }
+    std::vector<sf::Vector2i> result;
+    result.push_back(start);
+    return result;
 }
