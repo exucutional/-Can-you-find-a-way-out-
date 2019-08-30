@@ -12,8 +12,9 @@ You need install SFML https://www.sfml-dev.org/download.php
 ```
 
 ## Control
-  W
-A   D
-  S
+A left
+W up
+D right
+S down
 Left mouse button - shooting ![Screenshot][screenshot1.png]
 Right mouse button - spawn enemy skeleton ![Screenshot][screenshot2.png]
