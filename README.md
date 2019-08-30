@@ -18,5 +18,5 @@ W up
 D right
 S down
 ```
-Left mouse button - shooting
+Left mouse button - shooting  
 Right mouse button - spawn enemy skeleton 
