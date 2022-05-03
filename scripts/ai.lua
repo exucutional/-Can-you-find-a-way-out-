@@ -20,6 +20,11 @@ function ai_enemy(self)
                                     next_cellur.y * setting.tile_size + setting.tile_size / 2)
         local direction = next_point - current
         local normal = getNormalized(direction)
+        if normal.x < 0 then
+            self:mirrorFlip()
+        else
+            self:mirrorUnFlip()
+        end
         --print("normal", normal.x, normal.y)
         self:setVelocity(normal * setting.speed_rate)
         self:playAnimation(setting.animation.walk, true)

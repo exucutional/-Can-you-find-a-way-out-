@@ -7,7 +7,7 @@ function player_skeleton_king(self, obj, mtv, mode)
     end
 end
 function wall_block(self, obj, mtv, mode)
-    --self:move(mtv)
+    self:move(mtv)
 end
 function projectile_delete(self, obj, mtv, mode)
     self:setVelocity(0, 0)

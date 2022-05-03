@@ -58,7 +58,7 @@ GameObject::GameObject():
 	type(0),
 	currentAnimationNum(0),
 	isActive_(true),
-	debugMode(true)
+	debugMode(false)
 {
 	collider.setConvexPointCount(4);
 }

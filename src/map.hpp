@@ -27,5 +27,6 @@ public:
     void dumpMatrix(std::vector<std::vector<int>> matrix) const;
     //A* algoritm
     std::vector<sf::Vector2i> getPath(sf::Vector2i start, sf::Vector2i goal);
+    sf::Vector2f getFreePosition(sf::Vector2f position, float radius);
 };
 #endif //MAP_HPP_

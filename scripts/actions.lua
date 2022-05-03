@@ -66,6 +66,6 @@ function player_attack(object, mouse_pos)
     end
 end
 function player_special(object, mouse_pos)
-    local mob = oManager:newDynamicObject(setting.type.skeleton_king)
+    local mob = oManager:newDynamicObject(setting.type.skeleton)
     mob:setCenter(mouse_pos)
 end

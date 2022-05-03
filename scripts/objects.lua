@@ -27,8 +27,9 @@ setting = {
         wall_vertical_right_bot = 23;
         wall_vertical_right_top = 24;
         skeleton_king = 25;
+        skeleton = 26;
     };
-    type_max = 26;
+    type_max = 27;
     action = {
         move_down = 0;
         move_left = 1;
@@ -128,6 +129,25 @@ dynobjlist = {
             idle = "animation_skeleton_king_idle";
             walk = "animation_skeleton_king_walk";
             death = "animation_skeleton_king_death"
+        }
+    };
+    skeleton = {
+        type = setting.type.skeleton;
+        hp = 50;
+        damage = 0;
+        ai_class = "ai_enemy";
+        scale = {1, 1};
+        boundybox = {
+            {60, 85};
+            {110, 85};
+            {110, 159};
+            {60, 159}
+        };
+        interact_radius = 500;
+        animation = {
+            idle = "animation_skeleton_idle";
+            walk = "animation_skeleton_walk";
+            death = "animation_skeleton_death"
         }
     }
 }

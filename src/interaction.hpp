@@ -2,6 +2,7 @@
 #define INTERACTION_HPP_
 #include <iostream>
 #include <vector>
+#include <limits>
 #include "sol/sol.hpp"
 #include "gameobjects.hpp"
 #define NDEBUG

@@ -23,6 +23,10 @@ textures = {
     texture_skeleton_king = {
         name = "texture_skeleton_king";
         path = "data/textures/skeleton_king.png"
+    };
+    texture_skeleton = {
+        name = "texture_skeleton";
+        path = "data/textures/skeleton_sheet.png"
     }
 }
 animations = {
@@ -195,6 +199,36 @@ animations = {
             {320, 0, 320, 320};
             {640, 0, 320, 320};
             {960, 0, 320, 320}           
+        }
+    };
+    animation_skeleton_idle = {
+        name = "animation_skeleton_idle";
+        texture = "texture_skeleton";
+        frames = {
+            {0, 320, 160, 160};
+            {160, 320, 160, 160};
+            {320, 320, 160, 160};
+            {480, 320, 160, 160}
+        }
+    };
+    animation_skeleton_walk = {
+        name = "animation_skeleton_walk";
+        texture = "texture_skeleton";
+        frames = {
+            {0, 160, 160, 160};
+            {160, 160, 160, 160};
+            {320, 160, 160, 160};
+            {480, 160, 160, 160}
+        }
+    };
+    animation_skeleton_death = {
+        name = "animation_skeleton_death";
+        texture = "texture_skeleton";
+        frames = {
+            {0, 0, 160, 160};
+            {160, 0, 160, 160};
+            {320, 0, 160, 160};
+            {480, 0, 160, 160}
         }
     }
 }
