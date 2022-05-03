@@ -1,5 +1,7 @@
 # Primitive 2d game engine
 
+![](https://github.com/exucutional/2DGE/blob/master/demo.gif)
+
 ## Getting Started
 
 You need install SFML https://www.sfml-dev.org/download.php
@@ -11,12 +13,12 @@ You need install SFML https://www.sfml-dev.org/download.php
 2) make linux (or windows)
 ```
 
-## Control
+### Control
 ```
 A left
 W up
 D right
 S down
+Left mouse button - shoot
+Right mouse button - spawn enemy
 ```
-Left mouse button - shooting  
-Right mouse button - spawn enemy skeleton 
