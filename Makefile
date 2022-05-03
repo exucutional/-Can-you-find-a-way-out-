@@ -31,20 +31,26 @@ OBJASM = $(SRCASM:.S=.o)
 EXECUTABLE_LINUX = run.out
 EXECUTABLE_WINDOWS = run.exe
 
-windows: $(OBJPATH) $(SRCC) $(SRCASM) $(EXECUTABLE_WINDOWS)
+windows: luamake_mingw $(OBJPATH) $(SRCC) $(SRCASM) $(EXECUTABLE_WINDOWS)
 
-linux: $(OBJPATH) $(SRCC) $(SRCASM) $(EXECUTABLE_LINUX)
+linux: luamake_linux $(OBJPATH) $(SRCC) $(SRCASM) $(EXECUTABLE_LINUX)
+
+luamake_linux:
+	$(MAKE) -C lua-5.3.5 linux
+
+luamake_mingw:
+	$(MAKE) -C lua-5.3.5 mingw
 
 $(OBJPATH):
 	@mkdir $@
 
 $(EXECUTABLE_WINDOWS): $(OBJC)
 	@echo "LINKING:"
-	$(LD) $(LDFLAGS) $(OBJC) -o  $@ -L$(SFML_LIB_DIR) $(SFML) -L$(LUA_DIR) -llua
+	$(LD) $(LDFLAGS) $(OBJC) -o  $@ -L$(SFML_LIB_DIR) $(SFML) -L$(LUA_DIR)  -llua -ldl
 
 $(EXECUTABLE_LINUX): $(OBJC)
 	@echo "LINKING:"
-	$(LD) $(LDFLAGS) $(OBJC) -o  $@ $(SFML)
+	$(LD) $(LDFLAGS) $(OBJC) -o  $@ $(SFML) -L$(LUA_DIR) -llua -ldl
 
 $(OBJPATH)/%.o: %.cpp $(HEAD)
 	@echo "COMPILING:"
