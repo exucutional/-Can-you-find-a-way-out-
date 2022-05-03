@@ -46,7 +46,7 @@ $(OBJPATH):
 
 $(EXECUTABLE_WINDOWS): $(OBJC)
 	@echo "LINKING:"
-	$(LD) $(LDFLAGS) $(OBJC) -o  $@ -L$(SFML_LIB_DIR) $(SFML) -L$(LUA_DIR)  -llua -ldl
+	$(LD) $(LDFLAGS) $(OBJC) -o  $@ -L$(SFML_LIB_DIR) $(SFML) -L$(LUA_DIR)  -llua
 
 $(EXECUTABLE_LINUX): $(OBJC)
 	@echo "LINKING:"
